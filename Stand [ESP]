@@ -1,0 +1,160 @@
+getgenv().StandInfo = {
+  State = {
+    ["Stand"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupStand = function(Player)
+  local StandObject = getgenv().StandInfo.Objects[Player]
+  if not StandObject then return end
+  
+  if StandObject.BillboardGui then
+    pcall(function() StandObject.BillboardGui:Destroy() end)
+  end
+  
+  if StandObject.Connection then
+    StandObject.Connection:Disconnect()
+  end
+  
+  getgenv().StandInfo.Objects[Player] = nil
+end
+
+Zen.CreateStand = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local HumanoidRootPart = Character.HumanoidRootPart
+  local StandObject = {}
+  
+  StandObject.BillboardGui = Instance.new("BillboardGui")
+  StandObject.BillboardGui.Parent = HumanoidRootPart
+  StandObject.BillboardGui.Size = UDim2.new(0, 200, 0, 50)
+  StandObject.BillboardGui.StudsOffset = Vector3.new(0, -2, 0)
+  StandObject.BillboardGui.AlwaysOnTop = true
+  StandObject.BillboardGui.Enabled = getgenv().StandInfo.State.Stand
+  
+  StandObject.StandLabel = Instance.new("TextLabel")
+  StandObject.StandLabel.Parent = StandObject.BillboardGui
+  StandObject.StandLabel.Size = UDim2.new(0, 0, 0, 0)
+  StandObject.StandLabel.AutomaticSize = Enum.AutomaticSize.XY
+  StandObject.StandLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+  StandObject.StandLabel.BackgroundTransparency = 0.5
+  StandObject.StandLabel.BorderSizePixel = 0
+  StandObject.StandLabel.Text = ""
+  StandObject.StandLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+  StandObject.StandLabel.TextStrokeTransparency = 0
+  StandObject.StandLabel.Font = Enum.Font.Code
+  StandObject.StandLabel.TextSize = 12
+  StandObject.StandLabel.TextXAlignment = Enum.TextXAlignment.Center
+  StandObject.StandLabel.TextYAlignment = Enum.TextYAlignment.Center
+  StandObject.StandLabel.ZIndex = 10
+  StandObject.StandLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+  StandObject.StandLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+  
+  local StandGradient = Instance.new("UIGradient")
+  StandGradient.Parent = StandObject.StandLabel
+  StandGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(128, 128, 128)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+  })
+  StandGradient.Rotation = 90
+  
+  local StandPadding = Instance.new("UIPadding")
+  StandPadding.Parent = StandObject.StandLabel
+  StandPadding.PaddingLeft = UDim.new(0, 5)
+  StandPadding.PaddingRight = UDim.new(0, 5)
+  StandPadding.PaddingTop = UDim.new(0, 3)
+  StandPadding.PaddingBottom = UDim.new(0, 3)
+  
+  local StandCorner = Instance.new("UICorner")
+  StandCorner.Parent = StandObject.StandLabel
+  StandCorner.CornerRadius = UDim.new(0, 6)
+  
+  StandObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if StandObject.BillboardGui then
+        StandObject.BillboardGui.Enabled = false
+      end
+      return
+    end
+    
+    if StandObject.BillboardGui then
+      StandObject.BillboardGui.Enabled = getgenv().StandInfo.State.Stand
+      
+      if getgenv().StandInfo.State.Stand and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Stand") then
+        StandObject.StandLabel.Text = Player.PlayerStats.Stand.Value
+      else
+        StandObject.StandLabel.Text = ""
+      end
+    end
+  end)
+  
+  getgenv().StandInfo.Objects[Player] = StandObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupStand(Player)
+    Zen.CreateStand(Player)
+  end)
+end
+
+Zen.EnableStand = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().StandInfo.Objects[Player] then
+      Zen.CreateStand(Player)
+    end
+  end
+end
+
+Zen.DisableStand = function()
+  for Player, _ in pairs(getgenv().StandInfo.Objects) do
+    Zen.CleanupStand(Player)
+  end
+  getgenv().StandInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateStand(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().StandInfo.Objects[Player] then
+    Zen.CleanupStand(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local StandModule = Tab:create_module({
+  title = ".",
+  flag = "Stand_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().StandInfo.State.Stand = Value
+    if Value then
+      Zen.EnableStand()
+    else
+      Zen.DisableStand()
+    end
+  end
+})
+
+Main:load()
