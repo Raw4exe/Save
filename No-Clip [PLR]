@@ -1,0 +1,72 @@
+getgenv().NoClipInfo = getgenv().NoClipInfo or {
+    State = {
+        ["NoClipping"] = false;
+    };
+    Table = {
+        ["CachedBodyParts"] = {};
+    };
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+    table.clear(getgenv().NoClipInfo.Table.CachedBodyParts)
+end)
+
+local NoClipConnection
+
+local function EnableNoClip()
+    NoClipConnection = RunService.Stepped:Connect(function()
+        if getgenv().NoClipInfo.State.NoClipping then
+            if #getgenv().NoClipInfo.Table.CachedBodyParts == 0 then
+                for _, Part in Character:GetDescendants() do
+                    if (Part:IsA("BasePart") or Part:IsA("UnionOperation") or Part:IsA("MeshPart")) and Part.CanCollide == true then
+                        table.insert(getgenv().NoClipInfo.Table.CachedBodyParts, Part)
+                    end
+                end
+            end
+            
+            for _, Part in getgenv().NoClipInfo.Table.CachedBodyParts do
+                Part.CanCollide = false
+            end
+        end
+    end)
+end
+
+local function DisableNoClip()
+    if NoClipConnection then
+        NoClipConnection:Disconnect()
+    end
+    
+    for _, Part in getgenv().NoClipInfo.Table.CachedBodyParts do
+        Part.CanCollide = true
+    end
+end
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local NoClipModule = Tab:create_module({
+    title = ".",
+    flag = "NoClip_Module",
+    description = ".",
+    section = "left",
+    callback = function(Value)
+        getgenv().NoClipInfo.State.NoClipping = Value
+        
+        if Value then
+            EnableNoClip()
+        else
+            DisableNoClip()
+        end
+    end
+})
+
+Main:load()
