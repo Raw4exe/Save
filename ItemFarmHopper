@@ -1,0 +1,643 @@
+getgenv().Webhook = "" -- enter your webhook url here
+getgenv().ItemCollectionDelay = 0.5 -- set a longer delay if you get kicked
+getgenv().AutoSell = true -- auto sell all items 
+getgenv().AutoBuyLuckyArrow = true -- auto buy lucky arrows untill max
+getgenv().NoRenderingScreen = false -- small optimization
+
+getgenv().ItemsToFarm = {
+    ["Ancient Scroll"] = true,
+    ["Blue Candy"] = true,
+    ["Caesar's Headband"] = true,
+    ["Christmas Present"] = true,
+    ["Clackers"] = true,
+    ["Diamond"] = true,
+    ["Dio's Diary"] = true,
+    ["Gold Coin"] = true,
+    ["Green Candy"] = true,
+    ["Lucky Arrow"] = true,
+    ["Lucky Stone Mask"] = true,
+    ["Mysterious Arrow"] = true,
+    ["Pure Rokakaka"] = true,
+    ["Quinton's Glove"] = true,
+    ["Red Candy"] = true,
+    ["Rib Cage of The Saint's Corpse"] = true,
+    ["Rokakaka"] = true,
+    ["Steel Ball"] = true,
+    ["Stone Mask"] = true,
+    ["Yellow Candy"] = true,
+    ["Zeppeli's Hat"] = true,
+}
+
+local ItemPriority = {
+    ["Lucky Arrow"] = 1,
+    ["Lucky Stone Mask"] = 2,
+    ["Christmas Present"] = 3,
+    ["Red Candy"] = 4,
+    ["Blue Candy"] = 5,
+    ["Yellow Candy"] = 6,
+    ["Green Candy"] = 7,
+    ["Dio's Diary"] = 8,
+    ["Pure Rokakaka"] = 9,
+    ["Rib Cage of The Saint's Corpse"] = 10,
+    ["Clackers"] = 11,
+    ["Steel Ball"] = 12,
+    ["Quinton's Glove"] = 13,
+    ["Zeppeli's Hat"] = 14,
+    ["Stone Mask"] = 15,
+    ["Ancient Scroll"] = 16,
+    ["Caesar's Headband"] = 17,
+    ["Rokakaka"] = 18,
+    ["Diamond"] = 19,
+    ["Mysterious Arrow"] = 20,
+    ["Gold Coin"] = 21,
+}
+local BuyLucky = true
+local AutoSell = true
+local SellItems = {
+    ["Gold Coin"] = true,
+    ["Rokakaka"] = true,
+    ["Pure Rokakaka"] = true,
+    ["Mysterious Arrow"] = true,
+    ["Diamond"] = true,
+    ["Ancient Scroll"] = true,
+    ["Caesar's Headband"] = true,
+    ["Stone Mask"] = true,
+    ["Rib Cage of The Saint's Corpse"] = true,
+    ["Quinton's Glove"] = true,
+    ["Zeppeli's Hat"] = true,
+    ["Clackers"] = true,
+    ["Steel Ball"] = true,
+    ["Dio's Diary"] = true
+}
+
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+game:GetService("CoreGui").DescendantAdded:Connect(function(child)
+    if child.Name == "ErrorPrompt" then
+        local GrabError = child:FindFirstChild("ErrorMessage",true)
+        repeat task.wait() until GrabError.Text ~= "Label"
+        local Reason = GrabError.Text
+        if Reason:match("kick") or Reason:match("You") or Reason:match("conn") or Reason:match("rejoin") then
+            game:GetService("TeleportService"):Teleport(2809202155, game:GetService("Players").LocalPlayer)
+        end
+    end
+end)
+
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer and game.Players.LocalPlayer.Character
+
+
+local LocalPlayer = game.Players.LocalPlayer
+local Character = LocalPlayer.Character
+repeat task.wait() until Character:FindFirstChild("RemoteEvent") and Character:FindFirstChild("RemoteFunction")
+local RemoteFunction, RemoteEvent = Character.RemoteFunction, Character.RemoteEvent
+local HRP = Character.PrimaryPart
+local part
+local dontTPOnDeath = true
+
+
+if not LocalPlayer.PlayerGui:FindFirstChild("HUD") then
+    local HUD = game:GetService("ReplicatedStorage").Objects.HUD:Clone()
+    HUD.Parent = LocalPlayer.PlayerGui
+end
+
+RemoteEvent:FireServer("PressedPlay")
+
+if LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1") then
+ wait(2)
+    if LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1") then
+    LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1"):Destroy()
+    end
+end
+
+if LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen") then
+    LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen"):Destroy()
+end
+
+task.spawn(function()
+    if game.Lighting:WaitForChild("DepthOfField", 10) then
+        game.Lighting.DepthOfField:Destroy()
+    end
+end)
+
+if getgenv().NoRenderingScreen then
+    game:GetService("RunService"):Set3dRenderingEnabled(false)
+end
+
+local function SetLowGraphics()
+    local sethiddenproperty = sethiddenproperty or set_hidden_property or set_hidden_prop
+    
+    if sethiddenproperty then
+        pcall(function()
+            sethiddenproperty(game:GetService("Lighting"), "Technology", Enum.Technology.Compatibility)
+        end)
+    end
+    
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
+    
+    for _, obj in pairs(workspace:GetDescendants()) do
+        pcall(function()
+            if obj:IsA("Texture") or obj:IsA("Decal") then
+                obj.Transparency = 1
+            elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+                obj.Enabled = false
+            elseif obj:IsA("MeshPart") or obj:IsA("Part") or obj:IsA("UnionOperation") then
+                obj.Material = Enum.Material.Plastic
+                obj.Reflectance = 0
+            end
+        end)
+    end
+    
+    -- Удаляем эффекты из Lighting
+    for i,v in pairs(game.Lighting:GetChildren()) do
+        v:Destroy()
+    end
+    
+    -- Блокируем добавление эффектов в Lighting
+    game:GetService("Lighting").ChildAdded:Connect(function(b)
+        if b.Name == "ColorCorrection" or b.Name == "SunRays" or b.Name == "SoulCryCD" then
+            b:Destroy()
+        end
+    end)
+    
+    -- Блокируем эффекты в workspace.Effects
+    workspace.Effects.ChildAdded:Connect(function(lol)
+        if lol.Name == "ChaosEnergy" then
+            lol:Destroy()
+        end
+    end)
+    
+    -- Блокируем эффекты в Camera
+    workspace.Camera.ChildAdded:Connect(function(a)
+        if a.Name == "DarkBorder" or a.Name == "DarkClouds" or a.Name == "DarkSky1" or a.Name == "DarkSky2" then
+            a:Destroy()
+        end
+    end)
+end
+
+SetLowGraphics()
+
+workspace.ChildAdded:Connect(function(Child)
+    if Child.Name == "Money" then
+        task.wait(0.55)
+        repeat 
+            task.wait()
+            Child.CFrame = HRP.CFrame
+        until not workspace:FindFirstChild("Money")
+    end
+end)
+
+local function SendWebhook(msg, ping)
+    if getgenv().webhook == "" then
+        return
+    end
+    
+    local url = getgenv().webhook
+    local content = ping and "@everyone" or ""
+    local data = {
+        ["content"] = content,
+        ["embeds"] = {{
+            ["description"] = msg,
+            ["type"] = "rich",
+            ["color"] = tonumber(0x000000),
+        }}
+    }
+    
+    local newdata = game:GetService("HttpService"):JSONEncode(data)
+    local headers = {["Content-Type"] = "application/json"}
+    local request = http_request or request or HttpPost or syn.request or http.request
+    
+    pcall(function()
+        request({Url = url, Body = newdata, Method = "POST", Headers = headers})
+    end)
+end
+
+task.spawn(function()
+    task.wait(3)
+    
+    local luckyArrowCount = 0
+    for _, tool in pairs(Player.Backpack:GetChildren()) do
+        if tool.Name == "Lucky Arrow" then
+            luckyArrowCount = luckyArrowCount + 1
+        end
+    end
+    
+    local money = 0
+    if Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Money") then
+        money = Player.PlayerStats.Money.Value
+    end
+    
+    SendWebhook(
+        "**Account:** `" .. Player.Name .. "`" ..
+        "\n**Money:** `$" .. tostring(money) .. "`" ..
+        "\n**Lucky Arrows:** `" .. tostring(luckyArrowCount) .. "`",
+        false
+    )
+end)
+
+local maxMoneySent = false
+task.spawn(function()
+    while task.wait(5) do
+        if Player and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Money") then
+            local money = Player.PlayerStats.Money.Value
+            
+            if money >= 1000000 and not maxMoneySent then
+                maxMoneySent = true
+                
+                local luckyArrowCount = 0
+                for _, tool in pairs(Player.Backpack:GetChildren()) do
+                    if tool.Name == "Lucky Arrow" then
+                        luckyArrowCount = luckyArrowCount + 1
+                    end
+                end
+                
+                SendWebhook(
+                    "**FARMING COMPLETED!**" ..
+                    "\n\n**Account:** `" .. Player.Name .. "`" ..
+                    "\n**Money:** `$" .. tostring(money) .. "`" ..
+                    "\n**Lucky Arrows:** `" .. tostring(luckyArrowCount) .. "`",
+                    true
+                )
+            end
+        end
+    end
+end)
+
+local Has2x = MarketplaceService:UserOwnsGamePassAsync(Player.UserId, 14597778)
+
+local oldMagnitude
+oldMagnitude = hookmetamethod(Vector3.new(), "__index", newcclosure(function(self, index)
+    local CallingScript = tostring(getcallingscript())
+    if not checkcaller() and index == "magnitude" and CallingScript == "ItemSpawn" then
+        return 0
+    end
+    return oldMagnitude(self, index)
+end))
+
+local ItemSpawnFolder = Workspace:WaitForChild("Item_Spawns"):WaitForChild("Items")
+
+local function GetCharacter(Part)
+    if Player.Character then
+        if not Part then
+            return Player.Character
+        elseif typeof(Part) == "string" then
+            return Player.Character:FindFirstChild(Part) or nil
+        end
+    end
+    return nil
+end
+
+local function TeleportTo(Position)
+    local HumanoidRootPart = GetCharacter("HumanoidRootPart")
+    if HumanoidRootPart then
+        local PositionType = typeof(Position)
+        if PositionType == "CFrame" then
+            HumanoidRootPart.CFrame = Position
+        end
+    end
+end
+
+local MaxItemAmounts = {
+    ["Gold Coin"] = 45,
+    ["Rokakaka"] = 25,
+    ["Pure Rokakaka"] = 10,
+    ["Mysterious Arrow"] = 25,
+    ["Diamond"] = 30,
+    ["Ancient Scroll"] = 10,
+    ["Caesar's Headband"] = 10,
+    ["Stone Mask"] = 10,
+    ["Rib Cage of The Saint's Corpse"] = 20,
+    ["Quinton's Glove"] = 10,
+    ["Zeppeli's Hat"] = 10,
+    ["Lucky Arrow"] = 10,
+    ["Clackers"] = 10,
+    ["Steel Ball"] = 10,
+    ["Dio's Diary"] = 10,
+    ["Lucky Stone Mask"] = 10,
+    ["Christmas Present"] = 45
+}
+
+if Has2x then
+    for Index, Max in pairs(MaxItemAmounts) do
+        MaxItemAmounts[Index] = Max * 2
+    end
+end
+
+local function HasMaxItem(Item)
+    local Count = 0
+    for _, Tool in pairs(Player.Backpack:GetChildren()) do
+        if Tool.Name == Item then
+            Count += 1
+        end
+    end
+    if MaxItemAmounts[Item] then
+        return Count >= MaxItemAmounts[Item]
+    else
+        return false
+    end
+end
+
+local function HasLuckyArrows()
+    local Count = 0
+    for _, Tool in pairs(Player.Backpack:GetChildren()) do
+        if Tool.Name == "Lucky Arrow" then
+            Count += 1
+        end
+    end
+    return Count >= 9
+end
+
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local PlaceId = game.PlaceId
+
+function ServerHop()
+    local servers = HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceId .. '/servers/Public?sortOrder=Asc&limit=100'))
+    
+    for _, server in pairs(servers.data) do
+        if server.id ~= game.JobId and server.playing < server.maxPlayers then
+            TeleportService:TeleportToPlaceInstance(PlaceId, server.id, Player)
+            return
+        end
+    end
+end
+
+task.spawn(function()
+    for i = 1, 20 do
+        task.wait(1)
+        if Player.Character then
+            return
+        end
+        if workspace:FindFirstChild("Living") then
+            if workspace.Living:FindFirstChild(Player.Name) then
+                return
+            end
+        end
+    end
+    ServerHop()
+end)
+
+local function IdentifyItem(Item)
+    repeat task.wait() until Item:FindFirstChild("ProximityPrompt")
+    for _, Instance in Item:GetChildren() do
+        if Instance:IsA("ProximityPrompt") and Instance.MaxActivationDistance > 0 then
+            return Instance.ObjectText
+        end
+    end
+    return "Invalid Item"
+end
+
+local function AddToQueue(Item)
+    local IdentifiedItem = IdentifyItem(Item)
+    
+    if IdentifiedItem ~= "Invalid Item" then
+        repeat task.wait() until Item:FindFirstChild("ProximityPrompt")
+        
+        local ItemData = {
+            ["CFrame"] = Item.PrimaryPart.CFrame,
+            ["Prompt"] = Item.ProximityPrompt,
+            ["ItemName"] = IdentifiedItem,
+            ["ItemModel"] = Item
+        }
+        
+        Item.Name = IdentifiedItem
+        
+        task.spawn(function()
+            while task.wait(0.1) do
+                if Item.Parent == workspace.Item_Spawns.Items and Item.PrimaryPart then
+                else
+                    getgenv().ItemQueue[Item] = nil
+                    break
+                end
+            end
+        end)
+        
+        getgenv().ItemQueue[Item] = ItemData
+    end
+end
+
+getgenv().ItemQueue = {}
+getgenv().CachedBodyParts = {}
+
+task.spawn(function()
+    for _, Item in ItemSpawnFolder:GetChildren() do
+        AddToQueue(Item)
+    end
+end)
+
+ItemSpawnFolder.ChildAdded:Connect(function(Child)
+    AddToQueue(Child)
+end)
+
+ItemSpawnFolder.ChildRemoved:Connect(function(Child)
+    getgenv().ItemQueue[Child] = nil
+end)
+
+local UzuKeeIsRetardedAndDoesntKnowHowToMakeAnAntiCheatOnTheServerSideAlsoVexStfuIKnowTheCodeIsBadYouDontNeedToTellMe = "  ___XP DE KEY"
+
+local oldNc
+oldNc = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+    local Method = getnamecallmethod()
+    local Args = {...}
+    if not checkcaller() and rawequal(self.Name, "Returner") and rawequal(Args[1], "idklolbrah2de") then
+        return UzuKeeIsRetardedAndDoesntKnowHowToMakeAnAntiCheatOnTheServerSideAlsoVexStfuIKnowTheCodeIsBadYouDontNeedToTellMe
+    end
+    return oldNc(self, ...)
+end))
+
+task.wait(1)
+
+task.spawn(function()
+    RunService.Stepped:Connect(function()
+        local Character = GetCharacter()
+        if Character then
+            for _, part in pairs(Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end)
+
+task.spawn(function()
+    while true do
+        if getgenv().AutoSell and AutoSell then
+            local canSell = true
+            
+            if Player and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Money") then
+                local Money = Player.PlayerStats.Money.Value
+                if Money >= 1000000 then
+                    canSell = false
+                end
+            end
+            
+            if canSell then
+                for Item, Sell in pairs(SellItems) do
+                    if Sell and Player.Backpack and Player.Backpack:FindFirstChild(Item) then
+                        local char = GetCharacter()
+                        if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("RemoteEvent") then
+                            char.Humanoid:EquipTool(Player.Backpack:FindFirstChild(Item))
+                            char.RemoteEvent:FireServer("EndDialogue", {
+                                ["NPC"] = "Merchant",
+                                ["Dialogue"] = "Dialogue5",
+                                ["Option"] = "Option2"
+                            })
+                        end
+                    end
+                end
+            end
+        end
+        task.wait()
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.05) do
+        if getgenv().AutoBuyLuckyArrow and BuyLucky then
+            if Player and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Money") then
+                local Money = Player.PlayerStats.Money
+                if Money and Money.Value >= 75000 and not HasLuckyArrows() then
+                    local char = GetCharacter()
+                    if char and char:FindFirstChild("RemoteEvent") then
+                        char.RemoteEvent:FireServer("PurchaseShopItem", {["ItemName"] = "1x Lucky Arrow"})
+                    end
+                end
+            end
+        end
+    end
+end)
+
+task.wait(1.5)
+
+local function GetItemsToFarm()
+    local items = {}
+    
+    for ItemModel, ItemData in pairs(getgenv().ItemQueue) do
+        local ItemName = ItemData.ItemName
+        
+        if getgenv().ItemsToFarm[ItemName] == true then
+            local Priority = ItemPriority[ItemName] or 999
+            
+            table.insert(items, {
+                Model = ItemModel,
+                Data = ItemData,
+                Priority = Priority
+            })
+        end
+    end
+    
+    table.sort(items, function(a, b)
+        return a.Priority < b.Priority
+    end)
+    
+    return items
+end
+
+while true do
+    task.wait()
+    
+    local items = GetItemsToFarm()
+    
+    if #items == 0 then
+        ServerHop()
+    end
+    
+    for _, itemEntry in ipairs(items) do
+        local ItemModel = itemEntry.Model
+        local ItemData = itemEntry.Data
+        local HumanoidRootPart = GetCharacter("HumanoidRootPart")
+        
+        if not HumanoidRootPart then
+            break
+        end
+        
+        local ItemName = ItemData.ItemName
+        local ItemPrompt = ItemData.Prompt
+        
+        if not ItemModel or not ItemModel.Parent or ItemModel.Parent ~= workspace.Item_Spawns.Items then
+            getgenv().ItemQueue[ItemModel] = nil
+            continue
+        end
+        
+        if not ItemModel.PrimaryPart then
+            getgenv().ItemQueue[ItemModel] = nil
+            continue
+        end
+        
+        if HasMaxItem(ItemName) then
+            getgenv().ItemQueue[ItemModel] = nil
+            continue
+        end
+        
+        if #getgenv().CachedBodyParts == 0 then
+            for _, Part in GetCharacter():GetDescendants() do
+                if (Part:IsA("BasePart") or Part:IsA("UnionOperation") or Part:IsA("MeshPart")) and Part.CanCollide == true then
+                    table.insert(getgenv().CachedBodyParts, Part)
+                    Part.CanCollide = false
+                end
+            end
+        end
+        
+        local BodyVelocity = Instance.new("BodyVelocity")
+        BodyVelocity.Parent = HumanoidRootPart
+        BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        
+        local StartTime = tick()
+        repeat
+            task.wait()
+            if ItemModel and ItemModel.PrimaryPart and ItemModel.Parent == workspace.Item_Spawns.Items then
+                HumanoidRootPart.CFrame = ItemModel.PrimaryPart.CFrame - Vector3.new(0, 12, 0)
+            else
+                break
+            end
+        until tick() - StartTime >= getgenv().ItemCollectionDelay or ItemModel.Parent ~= workspace.Item_Spawns.Items
+        
+        local PickupStart = tick()
+        repeat
+            task.wait()
+            
+            if not ItemModel or not ItemModel.Parent or ItemModel.Parent ~= workspace.Item_Spawns.Items then
+                break
+            end
+            
+            if ItemModel.PrimaryPart then
+                HumanoidRootPart.CFrame = ItemModel.PrimaryPart.CFrame - Vector3.new(0, 12, 0)
+            end
+            
+            local ItemPromptCheck
+            for _, Prompt in ItemModel:GetChildren() do
+                if Prompt:IsA("ProximityPrompt") and Prompt.MaxActivationDistance ~= 0 then
+                    ItemPromptCheck = Prompt
+                end
+            end
+            
+            if ItemPromptCheck then
+                fireproximityprompt(ItemPromptCheck)
+            end
+        until not ItemModel or ItemModel.Parent ~= workspace.Item_Spawns.Items or tick() - PickupStart >= 3
+        
+        BodyVelocity:Destroy()
+        
+        TeleportTo(CFrame.new(-69.808, -42.480, -980.470))
+        
+        if #getgenv().CachedBodyParts ~= 0 then
+            for _, Part in getgenv().CachedBodyParts do
+                if Part and Part.Parent then
+                    Part.CanCollide = true
+                end
+            end
+            table.clear(getgenv().CachedBodyParts)
+        end
+        
+        getgenv().ItemQueue[ItemModel] = nil
+    end
+end
