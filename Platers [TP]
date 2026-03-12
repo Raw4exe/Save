@@ -1,0 +1,84 @@
+getgenv().PlayersInfo = getgenv().PlayersInfo or {
+    State = {
+        ["SelectedPlayer"] = "";
+    };
+}
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+end)
+
+local function GetPlayerList()
+    local List = {}
+    for _, Plr in ipairs(Players:GetPlayers()) do
+        if Plr ~= Player then
+            table.insert(List, Plr.Name)
+        end
+    end
+    table.sort(List)
+    return List
+end
+
+local OldNamecallTP;
+OldNamecallTP = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
+    local Arguments = {...}
+    local Method =  getnamecallmethod()
+        
+    if Method == "InvokeServer" and Arguments[1] == "idklolbrah2de" then
+        return "  ___XP DE KEY"
+    end
+        
+    return OldNamecallTP(self, ...)
+end))
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Raw4exe/Void/refs/heads/main/Library.lua"))()
+
+local Main = Library.new()
+
+local MainTab = Main:create_tab(".", "rbxassetid://76499042599127")
+
+local Module = MainTab:create_module({
+    title = ".",
+    flag = "TeleportPlayers",
+    description = ".",
+    section = "left"
+})
+
+local Dropdown = Module:create_dropdown({
+    title = ".",
+    flag = "Select_Player",
+    options = GetPlayerList(),
+    default = "",
+    multi_dropdown = false,
+    callback = function(Value)
+        getgenv().PlayersInfo.State.SelectedPlayer = Value
+    end
+})
+
+Module:create_button({
+    title = ".",
+    callback = function()
+        if getgenv().PlayersInfo.State.SelectedPlayer and getgenv().PlayersInfo.State.SelectedPlayer ~= "" then
+            local Plr = Players:FindFirstChild(getgenv().PlayersInfo.State.SelectedPlayer)
+            if Plr and Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
+                Character:PivotTo(Plr.Character.HumanoidRootPart.CFrame)
+            end
+        end
+    end
+})
+
+Players.PlayerAdded:Connect(function()
+    task.wait(0.5)
+    Dropdown:Refresh(GetPlayerList())
+end)
+
+Players.PlayerRemoving:Connect(function()
+    task.wait(0.3)
+    Dropdown:Refresh(GetPlayerList())
+end)
+
+Main:load()
