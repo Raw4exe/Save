@@ -1,0 +1,78 @@
+getgenv().JumpPowerInfo = getgenv().JumpPowerInfo or {
+    State = {
+        ["JumpPower"] = false;
+    };
+    Integer = {
+        ["HookedJumpPower"] = 100;
+        ["DefaultJumpPower"] = 50;
+    };
+}
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+    Humanoid = Character:WaitForChild("Humanoid")
+end)
+
+local OldNewIndex
+OldNewIndex = hookmetamethod(game, "__newindex", newcclosure(function(self, Key, Value, ...)
+    if Key == "JumpPower" then
+        getgenv().JumpPowerInfo.Integer.DefaultJumpPower = Value
+
+        if getgenv().JumpPowerInfo.State.JumpPower == true then
+            return OldNewIndex(self, Key, getgenv().JumpPowerInfo.Integer.HookedJumpPower, ...)
+        end
+    end
+
+    return OldNewIndex(self, Key, Value, ...)
+end))
+
+local OldIndex
+OldIndex = hookmetamethod(game, "__index", newcclosure(function(self, Key, ...)
+    if Key == "JumpPower" then
+        return getgenv().JumpPowerInfo.Integer.DefaultJumpPower
+    end
+
+    return OldIndex(self, Key, ...)
+end))
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+local Main = Library.new()
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local JumpPowerModule = Tab:create_module({
+    title = ".",
+    flag = "JumpPower_Module",
+    description = ".",
+    section = "left",
+    callback = function(Value)
+        getgenv().JumpPowerInfo.State.JumpPower = Value
+
+        if Value then
+            Humanoid.JumpPower = getgenv().JumpPowerInfo.Integer.HookedJumpPower
+        else
+            Humanoid.JumpPower = getgenv().JumpPowerInfo.Integer.DefaultJumpPower
+        end
+    end
+})
+
+JumpPowerModule:create_slider({
+    title = ".",
+    flag = "JumpPower_Slider",
+    minimum_value = 50,
+    maximum_value = 250,
+    value = 100,
+    round_number = true,
+    callback = function(Value)
+        getgenv().JumpPowerInfo.Integer.HookedJumpPower = Value
+        if getgenv().JumpPowerInfo.State.JumpPower then
+            Humanoid.JumpPower = Value
+        end
+    end
+})
+
+Main:load()
