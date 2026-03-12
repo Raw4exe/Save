@@ -1,0 +1,188 @@
+getgenv().NoRendering = true -- Set to false to enable rendering
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+local StarterGui = game:GetService("StarterGui")
+local VirtualUser = game:GetService("VirtualUser")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+local WaitTimeAfterFinish = 3.5
+local KickMessage = "SBR Completed"
+
+repeat task.wait() until game:IsLoaded() and Character:FindFirstChild("HumanoidRootPart")
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+    repeat task.wait() until Character:FindFirstChild("HumanoidRootPart")
+end)
+
+-- Перезаход при ошибке (кроме нашего кика)
+CoreGui.DescendantAdded:Connect(function(child)
+    if child.Name == "ErrorPrompt" then
+        local GrabError = child:FindFirstChild("ErrorMessage", true)
+        repeat task.wait() until GrabError.Text ~= "Label"
+        local Reason = GrabError.Text
+        if Reason:match(KickMessage) then return end
+        if Reason:match("kick") or Reason:match("You") or Reason:match("conn") or Reason:match("rejoin") then
+            TeleportService:Teleport(game.PlaceId, Player)
+        end
+    end
+end)
+
+repeat task.wait() until Character:FindFirstChild("RemoteEvent") and Character:FindFirstChild("RemoteFunction")
+local RemoteEvent = Character.RemoteEvent
+
+-- HUD и начало игры
+if not Player.PlayerGui:FindFirstChild("HUD") then
+    ReplicatedStorage.Objects.HUD:Clone().Parent = Player.PlayerGui
+end
+RemoteEvent:FireServer("PressedPlay")
+
+-- Удаляем экраны загрузки
+task.wait(2)
+pcall(function() Player.PlayerGui:FindFirstChild("LoadingScreen1"):Destroy() end)
+pcall(function() Player.PlayerGui:FindFirstChild("LoadingScreen"):Destroy() end)
+pcall(function() game.Lighting:FindFirstChild("DepthOfField"):Destroy() end)
+
+-- No Rendering для повышения производительности
+if getgenv().NoRendering then
+    local sethiddenproperty = sethiddenproperty or set_hidden_property or set_hidden_prop
+    
+    if sethiddenproperty then
+        -- Отключаем рендеринг 3D
+        pcall(function()
+            sethiddenproperty(game:GetService("Lighting"), "Technology", Enum.Technology.Compatibility)
+        end)
+        
+        -- Минимальное качество графики
+        pcall(function()
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        end)
+        
+        -- Отключаем все визуальные эффекты
+        for _, obj in pairs(workspace:GetDescendants()) do
+            pcall(function()
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+                    obj.Enabled = false
+                elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                    obj.Transparency = 1
+                elseif obj:IsA("MeshPart") or obj:IsA("Part") or obj:IsA("UnionOperation") then
+                    obj.Material = Enum.Material.Plastic
+                    obj.Reflectance = 0
+                end
+            end)
+        end
+        
+        -- Отключаем освещение
+        pcall(function()
+            game:GetService("Lighting").GlobalShadows = false
+            game:GetService("Lighting").FogEnd = 9e9
+            game:GetService("Lighting").Brightness = 0
+        end)
+    end
+end
+
+-- Hook magnitude
+local oldMagnitude
+oldMagnitude = hookmetamethod(Vector3.new(), "__index", newcclosure(function(self, index)
+    if not checkcaller() and index == "magnitude" and tostring(getcallingscript()) == "ItemSpawn" then
+        return 0
+    end
+    return oldMagnitude(self, index)
+end))
+
+-- Hook namecall
+local OldNamecall
+OldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+    local Args = {...}
+    if getnamecallmethod() == "InvokeServer" and Args[1] == "idklolbrah2de" then
+        return "  ___XP DE KEY"
+    end
+    return OldNamecall(self, ...)
+end))
+
+-- Анти-AFK
+Player.Idled:Connect(function()
+    VirtualUser:ClickButton2(Vector2.new())
+end)
+
+-- NoClip
+RunService.Stepped:Connect(function()
+    pcall(function()
+        for _, Part in pairs(Character:GetDescendants()) do
+            if Part:IsA("BasePart") then
+                Part.CanCollide = false
+            end
+        end
+    end)
+end)
+
+-- Камера
+local Camera = workspace.CurrentCamera
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        sethiddenproperty(Camera, "CameraSubject", Character:FindFirstChild("Humanoid"))
+    end)
+end)
+
+-- Underground анимация
+local HUD = Player.PlayerGui:FindFirstChild("HUD")
+if HUD then HUD.Parent = StarterGui end
+
+local Anim = Instance.new("Animation")
+Anim.AnimationId = "rbxassetid://7189062263"
+local Track = Character:FindFirstChild("Humanoid"):FindFirstChild("Animator"):LoadAnimation(Anim)
+Track:Play()
+Track:AdjustSpeed(0)
+Track.Priority = Enum.AnimationPriority.Action4
+Track.TimePosition = 5
+Player.Character = nil
+Track:Stop()
+Player.Character = Character
+
+pcall(function() StarterGui:FindFirstChild("HUD").Parent = Player.PlayerGui end)
+
+-- Части карты
+local StartPart = workspace.Map["NYC Bridge"].Start
+local FinishPart = workspace.Finish
+local targetCFrame = StartPart.CFrame * CFrame.new(0, -50, -10)
+
+-- Телепортация на старт
+local HRP = Character:FindFirstChild("HumanoidRootPart")
+if HRP then
+    local BV = Instance.new("BodyVelocity")
+    BV.Parent = HRP
+    BV.Velocity = Vector3.zero
+    BV.MaxForce = Vector3.one * math.huge
+    
+    repeat
+        task.wait()
+        if Character:FindFirstChild("HumanoidRootPart") then
+            Character.HumanoidRootPart.CFrame = targetCFrame
+        end
+    until not workspace.Barriers:FindFirstChild("4")
+    
+    BV:Destroy()
+end
+
+-- Телепортация на финиш
+HRP = Character:FindFirstChild("HumanoidRootPart")
+if HRP and FinishPart then
+    local BV = Instance.new("BodyVelocity")
+    BV.Parent = HRP
+    BV.Velocity = Vector3.zero
+    BV.MaxForce = Vector3.one * math.huge
+    
+    HRP.CFrame = CFrame.new(FinishPart.Position + Vector3.new(0, 100, 0))
+    
+    task.wait(0.5)
+    BV:Destroy()
+end
+
+task.wait(WaitTimeAfterFinish)
+Player:Kick(KickMessage)
