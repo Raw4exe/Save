@@ -1,0 +1,143 @@
+getgenv().AvatarInfo = {
+  State = {
+    ["Enabled"] = false
+  },
+  Objects = {}
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupAvatar = function(Player)
+  local AvatarObject = getgenv().AvatarInfo.Objects[Player]
+  if not AvatarObject then return end
+  
+  if AvatarObject.BillboardGui then
+    pcall(function() AvatarObject.BillboardGui:Destroy() end)
+  end
+  
+  if AvatarObject.Connection then
+    AvatarObject.Connection:Disconnect()
+  end
+  
+  getgenv().AvatarInfo.Objects[Player] = nil
+end
+
+Zen.CreateAvatar = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local HumanoidRootPart = Character.HumanoidRootPart
+  local AvatarObject = {}
+  
+  AvatarObject.BillboardGui = Instance.new("BillboardGui")
+  AvatarObject.BillboardGui.Parent = HumanoidRootPart
+  AvatarObject.BillboardGui.Size = UDim2.new(0, 55, 0, 55)
+  AvatarObject.BillboardGui.StudsOffset = Vector3.new(0, 5, 0)
+  AvatarObject.BillboardGui.AlwaysOnTop = true
+  AvatarObject.BillboardGui.Enabled = getgenv().AvatarInfo.State.Enabled
+  
+  AvatarObject.AvatarImage = Instance.new("ImageLabel")
+  AvatarObject.AvatarImage.Parent = AvatarObject.BillboardGui
+  AvatarObject.AvatarImage.Size = UDim2.new(1, 0, 1, 0)
+  AvatarObject.AvatarImage.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+  AvatarObject.AvatarImage.BackgroundTransparency = 0.3
+  AvatarObject.AvatarImage.BorderSizePixel = 0
+  AvatarObject.AvatarImage.ZIndex = 10
+  
+  local AvatarCorner = Instance.new("UICorner")
+  AvatarCorner.Parent = AvatarObject.AvatarImage
+  AvatarCorner.CornerRadius = UDim.new(1, 0)
+  
+  local AvatarStroke = Instance.new("UIStroke")
+  AvatarStroke.Parent = AvatarObject.AvatarImage
+  AvatarStroke.Color = Color3.fromRGB(128, 128, 128)
+  AvatarStroke.Thickness = 2
+  AvatarStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+  
+  task.spawn(function()
+    local Success, ThumbnailUrl = pcall(function()
+      return Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+    end)
+    if Success then
+      AvatarObject.AvatarImage.Image = ThumbnailUrl
+    end
+  end)
+  
+  AvatarObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if AvatarObject.BillboardGui then
+        AvatarObject.BillboardGui.Enabled = false
+      end
+      return
+    end
+    
+    if AvatarObject.BillboardGui then
+      AvatarObject.BillboardGui.Enabled = getgenv().AvatarInfo.State.Enabled
+    end
+  end)
+  
+  getgenv().AvatarInfo.Objects[Player] = AvatarObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupAvatar(Player)
+    Zen.CreateAvatar(Player)
+  end)
+end
+
+Zen.EnableAvatar = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().AvatarInfo.Objects[Player] then
+      Zen.CreateAvatar(Player)
+    end
+  end
+end
+
+Zen.DisableAvatar = function()
+  for Player, _ in pairs(getgenv().AvatarInfo.Objects) do
+    Zen.CleanupAvatar(Player)
+  end
+  getgenv().AvatarInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateAvatar(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().AvatarInfo.Objects[Player] then
+    Zen.CleanupAvatar(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local AvatarModule = Tab:create_module({
+  title = ".",
+  flag = "Avatar_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().AvatarInfo.State.Enabled = Value
+    if Value then
+      Zen.EnableAvatar()
+    else
+      Zen.DisableAvatar()
+    end
+  end
+})
+
+Main:load()
