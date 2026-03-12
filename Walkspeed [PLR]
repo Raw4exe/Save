@@ -1,0 +1,80 @@
+getgenv().WalkSpeedInfo = getgenv().WalkSpeedInfo or {
+    State = {
+        ["WalkSpeed"] = false;
+    };
+    Integer = {
+        ["HookedWalkSpeed"] = 50;
+        ["DefaultWalkSpeed"] = 16;
+    };
+}
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+    Humanoid = Character:WaitForChild("Humanoid")
+end)
+
+local OldNewIndex
+OldNewIndex = hookmetamethod(game, "__newindex", newcclosure(function(self, Key, Value, ...)
+    if Key == "WalkSpeed" then
+        getgenv().WalkSpeedInfo.Integer.DefaultWalkSpeed = Value
+
+        if getgenv().WalkSpeedInfo.State.WalkSpeed == true then
+            return OldNewIndex(self, Key, getgenv().WalkSpeedInfo.Integer.HookedWalkSpeed, ...)
+        end
+    end
+
+    return OldNewIndex(self, Key, Value, ...)
+end))
+
+local OldIndex
+OldIndex = hookmetamethod(game, "__index", newcclosure(function(self, Key, ...)
+    if Key == "WalkSpeed" then
+        return getgenv().WalkSpeedInfo.Integer.DefaultWalkSpeed
+    end
+
+    return OldIndex(self, Key, ...)
+end))
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local WalkSpeedModule = Tab:create_module({
+    title = ".",
+    flag = "WalkSpeed_Module",
+    description = ".",
+    section = "left",
+    callback = function(Value)
+        getgenv().WalkSpeedInfo.State.WalkSpeed = Value
+
+        if Value then
+            Humanoid.WalkSpeed = getgenv().WalkSpeedInfo.Integer.HookedWalkSpeed
+        else
+            Humanoid.WalkSpeed = getgenv().WalkSpeedInfo.Integer.DefaultWalkSpeed
+        end
+    end
+})
+
+WalkSpeedModule:create_slider({
+    title = ".",
+    flag = "WalkSpeed_Slider",
+    minimum_value = 16,
+    maximum_value = 250,
+    value = 50,
+    round_number = true,
+    callback = function(Value)
+        getgenv().WalkSpeedInfo.Integer.HookedWalkSpeed = Value
+        if getgenv().WalkSpeedInfo.State.WalkSpeed then
+            Humanoid.WalkSpeed = Value
+        end
+    end
+})
+
+Main:load()
