@@ -1,0 +1,88 @@
+getgenv().PlacesInfo = getgenv().PlacesInfo or {
+    State = {
+        ["SelectedPlace"] = "";
+    };
+}
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+end)
+
+local Places = {
+    ["Newbie Giorno"] = CFrame.new(1, 0, -697),
+    ["Train Station Side 1"] = CFrame.new(-214, 0, 18),
+    ["Train Station Side 2"] = CFrame.new(-265, -30, -447),
+    ["Pizza Place"] = CFrame.new(113, 6, 71),
+    ["The Arcade"] = CFrame.new(255, 5, -239),
+    ["The Cafe"] = CFrame.new(-544, -25, -174),
+    ["Tallest Peak"] = CFrame.new(-237, 284, 305),
+    ["Hamon Merchant"] = CFrame.new(421, 8, -287),
+    ["Boxing Merchant"] = CFrame.new(281, 0, 101),
+    ["Pluck Merchant"] = CFrame.new(125, -27, 438),
+    ["Heaven Dimension"] = CFrame.new(8553, -479, 8154),
+    ["Arrowsmith"] = CFrame.new(-667, 16, -299),
+    ["Cosmetics Merchants"] = CFrame.new(512, 2, 22),
+    ["Brad the Bat Merchant"] = CFrame.new(-14, 0, -286),
+    ["Vampire Room"] = CFrame.new(391, -31, -166),
+    ["Safe Spot"] = CFrame.new(-452, -20, 206)
+}
+
+local function GetPlacesList()
+    local List = {}
+    for Name, _ in pairs(Places) do
+        table.insert(List, Name)
+    end
+    table.sort(List)
+    return List
+end
+
+local OldNamecallTP;
+OldNamecallTP = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
+    local Arguments = {...}
+    local Method =  getnamecallmethod()
+        
+    if Method == "InvokeServer" and Arguments[1] == "idklolbrah2de" then
+        return "  ___XP DE KEY"
+    end
+        
+    return OldNamecallTP(self, ...)
+end))
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Raw4exe/Void/refs/heads/main/Library.lua"))()
+
+local Main = Library.new()
+
+local MainTab = Main:create_tab(".", "rbxassetid://76499042599127")
+
+local Module = MainTab:create_module({
+    title = ".",
+    flag = "TeleportPlaces",
+    description = ".",
+    section = "left"
+})
+
+Module:create_dropdown({
+    title = ".",
+    flag = "Select_Place",
+    options = GetPlacesList(),
+    default = "",
+    multi_dropdown = false,
+    callback = function(Value)
+        getgenv().PlacesInfo.State.SelectedPlace = Value
+    end
+})
+
+Module:create_button({
+    title = ".",
+    callback = function()
+        if getgenv().PlacesInfo.State.SelectedPlace and getgenv().PlacesInfo.State.SelectedPlace ~= "" and Places[getgenv().PlacesInfo.State.SelectedPlace] then
+            Character:PivotTo(Places[getgenv().PlacesInfo.State.SelectedPlace])
+        end
+    end
+})
+
+Main:load()
