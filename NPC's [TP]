@@ -1,0 +1,82 @@
+getgenv().NPCsInfo = getgenv().NPCsInfo or {
+    State = {
+        ["SelectedNPC"] = "";
+    };
+}
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+end)
+
+local NPCs = {
+    ["Diavolo"] = CFrame.new(1126, 116, -129),
+    ["Dio P3"] = CFrame.new(-44, 0, -973),
+    ["Jotaro P3"] = CFrame.new(182, -25, 578),
+    ["Jotaro P6"] = CFrame.new(784, -42, 144),
+    ["Leaky Eye Luca"] = CFrame.new(-382, 0, -711),
+    ["Chad"] = CFrame.new(-121, -24, 524),
+    ["Dracula"] = CFrame.new(-420, -34, -75),
+    ["Kars"] = CFrame.new(264, -33, 112),
+    ["Homeless Man Jill"] = CFrame.new(-142, -31, -577),
+    ["Enrico Pucci"] = CFrame.new(917, 34, -17)
+}
+
+local function GetNPCList()
+    local List = {}
+    for Name, _ in pairs(NPCs) do
+        table.insert(List, Name)
+    end
+    table.sort(List)
+    return List
+end
+
+local OldNamecallTP;
+OldNamecallTP = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
+    local Arguments = {...}
+    local Method =  getnamecallmethod()
+        
+    if Method == "InvokeServer" and Arguments[1] == "idklolbrah2de" then
+        return "  ___XP DE KEY"
+    end
+        
+    return OldNamecallTP(self, ...)
+end))
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Raw4exe/Void/refs/heads/main/Library.lua"))()
+
+local Main = Library.new()
+
+local MainTab = Main:create_tab(".", "rbxassetid://76499042599127")
+
+local Module = MainTab:create_module({
+    title = ".",
+    flag = "TeleportNPCs",
+    description = ".",
+    section = "left"
+})
+
+Module:create_dropdown({
+    title = ".",
+    flag = "Select_NPC",
+    options = GetNPCList(),
+    default = "",
+    multi_dropdown = false,
+    callback = function(Value)
+        getgenv().NPCsInfo.State.SelectedNPC = Value
+    end
+})
+
+Module:create_button({
+    title = ".",
+    callback = function()
+        if getgenv().NPCsInfo.State.SelectedNPC and getgenv().NPCsInfo.State.SelectedNPC ~= "" and NPCs[getgenv().NPCsInfo.State.SelectedNPC] then
+            Character:PivotTo(NPCs[getgenv().NPCsInfo.State.SelectedNPC])
+        end
+    end
+})
+
+Main:load()
