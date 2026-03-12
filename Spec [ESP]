@@ -1,0 +1,160 @@
+getgenv().SpecInfo = {
+  State = {
+    ["Spec"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupSpec = function(Player)
+  local SpecObject = getgenv().SpecInfo.Objects[Player]
+  if not SpecObject then return end
+  
+  if SpecObject.BillboardGui then
+    pcall(function() SpecObject.BillboardGui:Destroy() end)
+  end
+  
+  if SpecObject.Connection then
+    SpecObject.Connection:Disconnect()
+  end
+  
+  getgenv().SpecInfo.Objects[Player] = nil
+end
+
+Zen.CreateSpec = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local HumanoidRootPart = Character.HumanoidRootPart
+  local SpecObject = {}
+  
+  SpecObject.BillboardGui = Instance.new("BillboardGui")
+  SpecObject.BillboardGui.Parent = HumanoidRootPart
+  SpecObject.BillboardGui.Size = UDim2.new(0, 200, 0, 50)
+  SpecObject.BillboardGui.StudsOffset = Vector3.new(0, -3, 0)
+  SpecObject.BillboardGui.AlwaysOnTop = true
+  SpecObject.BillboardGui.Enabled = getgenv().SpecInfo.State.Spec
+  
+  SpecObject.SpecLabel = Instance.new("TextLabel")
+  SpecObject.SpecLabel.Parent = SpecObject.BillboardGui
+  SpecObject.SpecLabel.Size = UDim2.new(0, 0, 0, 0)
+  SpecObject.SpecLabel.AutomaticSize = Enum.AutomaticSize.XY
+  SpecObject.SpecLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+  SpecObject.SpecLabel.BackgroundTransparency = 0.5
+  SpecObject.SpecLabel.BorderSizePixel = 0
+  SpecObject.SpecLabel.Text = ""
+  SpecObject.SpecLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+  SpecObject.SpecLabel.TextStrokeTransparency = 0
+  SpecObject.SpecLabel.Font = Enum.Font.Code
+  SpecObject.SpecLabel.TextSize = 12
+  SpecObject.SpecLabel.TextXAlignment = Enum.TextXAlignment.Center
+  SpecObject.SpecLabel.TextYAlignment = Enum.TextYAlignment.Center
+  SpecObject.SpecLabel.ZIndex = 10
+  SpecObject.SpecLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+  SpecObject.SpecLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+  
+  local SpecGradient = Instance.new("UIGradient")
+  SpecGradient.Parent = SpecObject.SpecLabel
+  SpecGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(128, 128, 128)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+  })
+  SpecGradient.Rotation = 90
+  
+  local SpecPadding = Instance.new("UIPadding")
+  SpecPadding.Parent = SpecObject.SpecLabel
+  SpecPadding.PaddingLeft = UDim.new(0, 5)
+  SpecPadding.PaddingRight = UDim.new(0, 5)
+  SpecPadding.PaddingTop = UDim.new(0, 3)
+  SpecPadding.PaddingBottom = UDim.new(0, 3)
+  
+  local SpecCorner = Instance.new("UICorner")
+  SpecCorner.Parent = SpecObject.SpecLabel
+  SpecCorner.CornerRadius = UDim.new(0, 6)
+  
+  SpecObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if SpecObject.BillboardGui then
+        SpecObject.BillboardGui.Enabled = false
+      end
+      return
+    end
+    
+    if SpecObject.BillboardGui then
+      SpecObject.BillboardGui.Enabled = getgenv().SpecInfo.State.Spec
+      
+      if getgenv().SpecInfo.State.Spec and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Spec") then
+        SpecObject.SpecLabel.Text = Player.PlayerStats.Spec.Value
+      else
+        SpecObject.SpecLabel.Text = ""
+      end
+    end
+  end)
+  
+  getgenv().SpecInfo.Objects[Player] = SpecObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupSpec(Player)
+    Zen.CreateSpec(Player)
+  end)
+end
+
+Zen.EnableSpec = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().SpecInfo.Objects[Player] then
+      Zen.CreateSpec(Player)
+    end
+  end
+end
+
+Zen.DisableSpec = function()
+  for Player, _ in pairs(getgenv().SpecInfo.Objects) do
+    Zen.CleanupSpec(Player)
+  end
+  getgenv().SpecInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateSpec(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().SpecInfo.Objects[Player] then
+    Zen.CleanupSpec(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local SpecModule = Tab:create_module({
+  title = ".",
+  flag = "Spec_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().SpecInfo.State.Spec = Value
+    if Value then
+      Zen.EnableSpec()
+    else
+      Zen.DisableSpec()
+    end
+  end
+})
+
+Main:load()
