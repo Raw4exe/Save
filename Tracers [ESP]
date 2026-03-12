@@ -1,0 +1,126 @@
+getgenv().TracersInfo = {
+  State = {
+    ["Tracers"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupTracers = function(Player)
+  local TracerObject = getgenv().TracersInfo.Objects[Player]
+  if not TracerObject then return end
+  
+  if TracerObject.Tracer then
+    pcall(function() TracerObject.Tracer:Destroy() end)
+  end
+  
+  if TracerObject.Connection then
+    TracerObject.Connection:Disconnect()
+  end
+  
+  getgenv().TracersInfo.Objects[Player] = nil
+end
+
+Zen.CreateTracers = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local TracerObject = {}
+  
+  TracerObject.Tracer = Instance.new("Part")
+  TracerObject.Tracer.Parent = workspace
+  TracerObject.Tracer.Anchored = true
+  TracerObject.Tracer.CanCollide = false
+  TracerObject.Tracer.Material = Enum.Material.ForceField
+  TracerObject.Tracer.Color = Color3.fromRGB(255, 255, 255)
+  TracerObject.Tracer.Size = Vector3.new(0.05, 0.05, 1)
+  TracerObject.Tracer.Transparency = 1
+  TracerObject.Tracer.CastShadow = false
+  
+  TracerObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if TracerObject.Tracer then
+        TracerObject.Tracer.Transparency = 1
+      end
+      return
+    end
+    
+    if getgenv().TracersInfo.State.Tracers and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+      local MyHumanoidRootPart = LocalPlayer.Character.HumanoidRootPart
+      local TargetPosition = Player.Character.HumanoidRootPart.Position
+      local Distance = (MyHumanoidRootPart.Position - TargetPosition).Magnitude
+      local MidPoint = (MyHumanoidRootPart.Position + TargetPosition) / 2
+      
+      TracerObject.Tracer.Size = Vector3.new(0.1, 0.1, Distance)
+      TracerObject.Tracer.CFrame = CFrame.new(MidPoint, TargetPosition)
+      TracerObject.Tracer.Transparency = 0.5
+    else
+      TracerObject.Tracer.Transparency = 1
+    end
+  end)
+  
+  getgenv().TracersInfo.Objects[Player] = TracerObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupTracers(Player)
+    Zen.CreateTracers(Player)
+  end)
+end
+
+Zen.EnableTracers = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().TracersInfo.Objects[Player] then
+      Zen.CreateTracers(Player)
+    end
+  end
+end
+
+Zen.DisableTracers = function()
+  for Player, _ in pairs(getgenv().TracersInfo.Objects) do
+    Zen.CleanupTracers(Player)
+  end
+  getgenv().TracersInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateTracers(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().TracersInfo.Objects[Player] then
+    Zen.CleanupTracers(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local TracersModule = Tab:create_module({
+  title = ".",
+  flag = "Tracers_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().TracersInfo.State.Tracers = Value
+    if Value then
+      Zen.EnableTracers()
+    else
+      Zen.DisableTracers()
+    end
+  end
+})
+
+Main:load()
