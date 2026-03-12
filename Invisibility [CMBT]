@@ -1,0 +1,95 @@
+getgenv().InvisibilityInfo = {
+  ["Invisibility"] = false,
+  ["AutoReEnable"] = false
+}
+
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+local UndergroundAnimation
+
+local function PlayAnimation(AnimationID, AnimationSpeed, Time)
+  local CreatedAnimation = Instance.new("Animation")
+  CreatedAnimation.AnimationId = AnimationID
+  local Humanoid = Character:FindFirstChild("Humanoid") or Character:WaitForChild("Humanoid")
+  local Animator = Humanoid:FindFirstChild("Animator") or Humanoid:WaitForChild("Animator", 3)
+  local AnimationTrack = Animator:LoadAnimation(CreatedAnimation)
+  
+  AnimationTrack:Play()
+  AnimationTrack:AdjustSpeed(AnimationSpeed)
+  AnimationTrack.Priority = Enum.AnimationPriority.Action4
+  AnimationTrack.TimePosition = Time
+  return AnimationTrack
+end
+
+local function MakeInvisible()
+  local HUD = Player.PlayerGui:FindFirstChild("HUD")
+  if HUD then
+    HUD.Parent = StarterGui
+  end
+  
+  UndergroundAnimation = PlayAnimation("rbxassetid://7189062263", 0, 5)
+  Player.Character = nil
+  UndergroundAnimation:Stop()
+  Player.Character = Character
+  
+  pcall(function()
+    StarterGui:FindFirstChild("HUD").Parent = Player.PlayerGui
+  end)
+  
+  for _, Part in Character:GetChildren() do
+    if Part:IsA("BasePart") then
+      Part.Material = Enum.Material.ForceField
+    end
+  end
+end
+
+local function MakeVisible()
+  PlayAnimation("rbxassetid://7189062263", 0, 5):Stop()
+  
+  if Highlight then
+    Highlight:Destroy()
+  end
+local function MakeVisible()
+  PlayAnimation("rbxassetid://7189062263", 0, 5):Stop()
+  
+  for _, Part in Character:GetChildren() do
+    if Part:IsA("BasePart") then
+      Part.Material = Enum.Material.SmoothPlastic
+    end
+  end
+end 
+    getgenv().InvisibilityInfo.AutoReEnable = false
+
+    MakeInvisible()
+
+    getgenv().InvisibilityInfo.AutoReEnable = true
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local InvisibilityModule = Tab:create_module({
+  title = ".",
+  flag = "Invisibility_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().InvisibilityInfo.Invisibility = Value
+    if Value then
+      MakeInvisible()
+      getgenv().InvisibilityInfo.AutoReEnable = true
+    else
+      MakeVisible()
+      getgenv().InvisibilityInfo.AutoReEnable = false
+    end
+  end
+})
+
+Main:load()
