@@ -1,0 +1,154 @@
+getgenv().NamesInfo = {
+  State = {
+    ["Names"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupNames = function(Player)
+  local NameObject = getgenv().NamesInfo.Objects[Player]
+  if not NameObject then return end
+  
+  if NameObject.BillboardGui then
+    pcall(function() NameObject.BillboardGui:Destroy() end)
+  end
+  
+  if NameObject.Connection then
+    NameObject.Connection:Disconnect()
+  end
+  
+  getgenv().NamesInfo.Objects[Player] = nil
+end
+
+Zen.CreateNames = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local HumanoidRootPart = Character.HumanoidRootPart
+  local NameObject = {}
+  
+  NameObject.BillboardGui = Instance.new("BillboardGui")
+  NameObject.BillboardGui.Parent = HumanoidRootPart
+  NameObject.BillboardGui.Size = UDim2.new(0, 200, 0, 50)
+  NameObject.BillboardGui.StudsOffset = Vector3.new(0, 3, 0)
+  NameObject.BillboardGui.AlwaysOnTop = true
+  NameObject.BillboardGui.Enabled = getgenv().NamesInfo.State.Names
+  
+  NameObject.NameLabel = Instance.new("TextLabel")
+  NameObject.NameLabel.Parent = NameObject.BillboardGui
+  NameObject.NameLabel.Size = UDim2.new(0, 0, 0, 0)
+  NameObject.NameLabel.AutomaticSize = Enum.AutomaticSize.XY
+  NameObject.NameLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+  NameObject.NameLabel.BackgroundTransparency = 0.5
+  NameObject.NameLabel.BorderSizePixel = 0
+  NameObject.NameLabel.Text = Player.Name
+  NameObject.NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+  NameObject.NameLabel.TextStrokeTransparency = 0
+  NameObject.NameLabel.Font = Enum.Font.Code
+  NameObject.NameLabel.TextSize = 12
+  NameObject.NameLabel.TextXAlignment = Enum.TextXAlignment.Center
+  NameObject.NameLabel.TextYAlignment = Enum.TextYAlignment.Center
+  NameObject.NameLabel.ZIndex = 10
+  NameObject.NameLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+  NameObject.NameLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+  
+  local NameGradient = Instance.new("UIGradient")
+  NameGradient.Parent = NameObject.NameLabel
+  NameGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(128, 128, 128)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+  })
+  NameGradient.Rotation = 90
+  
+  local NamePadding = Instance.new("UIPadding")
+  NamePadding.Parent = NameObject.NameLabel
+  NamePadding.PaddingLeft = UDim.new(0, 5)
+  NamePadding.PaddingRight = UDim.new(0, 5)
+  NamePadding.PaddingTop = UDim.new(0, 3)
+  NamePadding.PaddingBottom = UDim.new(0, 3)
+  
+  local NameCorner = Instance.new("UICorner")
+  NameCorner.Parent = NameObject.NameLabel
+  NameCorner.CornerRadius = UDim.new(0, 6)
+  
+  NameObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if NameObject.BillboardGui then
+        NameObject.BillboardGui.Enabled = false
+      end
+      return
+    end
+    
+    if NameObject.BillboardGui then
+      NameObject.BillboardGui.Enabled = getgenv().NamesInfo.State.Names
+    end
+  end)
+  
+  getgenv().NamesInfo.Objects[Player] = NameObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupNames(Player)
+    Zen.CreateNames(Player)
+  end)
+end
+
+Zen.EnableNames = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().NamesInfo.Objects[Player] then
+      Zen.CreateNames(Player)
+    end
+  end
+end
+
+Zen.DisableNames = function()
+  for Player, _ in pairs(getgenv().NamesInfo.Objects) do
+    Zen.CleanupNames(Player)
+  end
+  getgenv().NamesInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateNames(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().NamesInfo.Objects[Player] then
+    Zen.CleanupNames(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local NamesModule = Tab:create_module({
+  title = ".",
+  flag = "Names_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().NamesInfo.State.Names = Value
+    if Value then
+      Zen.EnableNames()
+    else
+      Zen.DisableNames()
+    end
+  end
+})
+
+Main:load()
