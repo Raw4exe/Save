@@ -1,0 +1,116 @@
+getgenv().ChamsInfo = {
+  State = {
+    ["Chams"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupChams = function(Player)
+  local ChamsObject = getgenv().ChamsInfo.Objects[Player]
+  if not ChamsObject then return end
+  
+  if ChamsObject.Highlight then
+    pcall(function() ChamsObject.Highlight:Destroy() end)
+  end
+  
+  if ChamsObject.Connection then
+    ChamsObject.Connection:Disconnect()
+  end
+  
+  getgenv().ChamsInfo.Objects[Player] = nil
+end
+
+Zen.CreateChams = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local ChamsObject = {}
+  
+  ChamsObject.Highlight = Instance.new("Highlight")
+  ChamsObject.Highlight.Parent = Character
+  ChamsObject.Highlight.FillColor = Color3.fromRGB(255, 255, 255)
+  ChamsObject.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+  ChamsObject.Highlight.FillTransparency = 0.5
+  ChamsObject.Highlight.OutlineTransparency = 0
+  ChamsObject.Highlight.Enabled = getgenv().ChamsInfo.State.Chams
+  
+  ChamsObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if ChamsObject.Highlight then
+        ChamsObject.Highlight.Enabled = false
+      end
+      return
+    end
+    
+    if ChamsObject.Highlight then
+      ChamsObject.Highlight.Enabled = getgenv().ChamsInfo.State.Chams
+    end
+  end)
+  
+  getgenv().ChamsInfo.Objects[Player] = ChamsObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupChams(Player)
+    Zen.CreateChams(Player)
+  end)
+end
+
+Zen.EnableChams = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().ChamsInfo.Objects[Player] then
+      Zen.CreateChams(Player)
+    end
+  end
+end
+
+Zen.DisableChams = function()
+  for Player, _ in pairs(getgenv().ChamsInfo.Objects) do
+    Zen.CleanupChams(Player)
+  end
+  getgenv().ChamsInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateChams(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().ChamsInfo.Objects[Player] then
+    Zen.CleanupChams(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local ChamsModule = Tab:create_module({
+  title = ".",
+  flag = "Chams_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().ChamsInfo.State.Chams = Value
+    if Value then
+      Zen.EnableChams()
+    else
+      Zen.DisableChams()
+    end
+  end
+})
+
+Main:load()
