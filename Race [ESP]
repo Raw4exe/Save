@@ -1,0 +1,160 @@
+getgenv().RaceInfo = {
+  State = {
+    ["Race"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupRace = function(Player)
+  local RaceObject = getgenv().RaceInfo.Objects[Player]
+  if not RaceObject then return end
+  
+  if RaceObject.BillboardGui then
+    pcall(function() RaceObject.BillboardGui:Destroy() end)
+  end
+  
+  if RaceObject.Connection then
+    RaceObject.Connection:Disconnect()
+  end
+  
+  getgenv().RaceInfo.Objects[Player] = nil
+end
+
+Zen.CreateRace = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local HumanoidRootPart = Character.HumanoidRootPart
+  local RaceObject = {}
+  
+  RaceObject.BillboardGui = Instance.new("BillboardGui")
+  RaceObject.BillboardGui.Parent = HumanoidRootPart
+  RaceObject.BillboardGui.Size = UDim2.new(0, 200, 0, 50)
+  RaceObject.BillboardGui.StudsOffset = Vector3.new(0, -1, 0)
+  RaceObject.BillboardGui.AlwaysOnTop = true
+  RaceObject.BillboardGui.Enabled = getgenv().RaceInfo.State.Race
+  
+  RaceObject.RaceLabel = Instance.new("TextLabel")
+  RaceObject.RaceLabel.Parent = RaceObject.BillboardGui
+  RaceObject.RaceLabel.Size = UDim2.new(0, 0, 0, 0)
+  RaceObject.RaceLabel.AutomaticSize = Enum.AutomaticSize.XY
+  RaceObject.RaceLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+  RaceObject.RaceLabel.BackgroundTransparency = 0.5
+  RaceObject.RaceLabel.BorderSizePixel = 0
+  RaceObject.RaceLabel.Text = ""
+  RaceObject.RaceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+  RaceObject.RaceLabel.TextStrokeTransparency = 0
+  RaceObject.RaceLabel.Font = Enum.Font.Code
+  RaceObject.RaceLabel.TextSize = 12
+  RaceObject.RaceLabel.TextXAlignment = Enum.TextXAlignment.Center
+  RaceObject.RaceLabel.TextYAlignment = Enum.TextYAlignment.Center
+  RaceObject.RaceLabel.ZIndex = 10
+  RaceObject.RaceLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+  RaceObject.RaceLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+  
+  local RaceGradient = Instance.new("UIGradient")
+  RaceGradient.Parent = RaceObject.RaceLabel
+  RaceGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(128, 128, 128)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+  })
+  RaceGradient.Rotation = 90
+  
+  local RacePadding = Instance.new("UIPadding")
+  RacePadding.Parent = RaceObject.RaceLabel
+  RacePadding.PaddingLeft = UDim.new(0, 5)
+  RacePadding.PaddingRight = UDim.new(0, 5)
+  RacePadding.PaddingTop = UDim.new(0, 3)
+  RacePadding.PaddingBottom = UDim.new(0, 3)
+  
+  local RaceCorner = Instance.new("UICorner")
+  RaceCorner.Parent = RaceObject.RaceLabel
+  RaceCorner.CornerRadius = UDim.new(0, 6)
+  
+  RaceObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if RaceObject.BillboardGui then
+        RaceObject.BillboardGui.Enabled = false
+      end
+      return
+    end
+    
+    if RaceObject.BillboardGui then
+      RaceObject.BillboardGui.Enabled = getgenv().RaceInfo.State.Race
+      
+      if getgenv().RaceInfo.State.Race and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Race") then
+        RaceObject.RaceLabel.Text = Player.PlayerStats.Race.Value
+      else
+        RaceObject.RaceLabel.Text = ""
+      end
+    end
+  end)
+  
+  getgenv().RaceInfo.Objects[Player] = RaceObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupRace(Player)
+    Zen.CreateRace(Player)
+  end)
+end
+
+Zen.EnableRace = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().RaceInfo.Objects[Player] then
+      Zen.CreateRace(Player)
+    end
+  end
+end
+
+Zen.DisableRace = function()
+  for Player, _ in pairs(getgenv().RaceInfo.Objects) do
+    Zen.CleanupRace(Player)
+  end
+  getgenv().RaceInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateRace(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().RaceInfo.Objects[Player] then
+    Zen.CleanupRace(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local RaceModule = Tab:create_module({
+  title = ".",
+  flag = "Race_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().RaceInfo.State.Race = Value
+    if Value then
+      Zen.EnableRace()
+    else
+      Zen.DisableRace()
+    end
+  end
+})
+
+Main:load()
