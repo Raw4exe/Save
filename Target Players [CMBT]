@@ -1,0 +1,363 @@
+getgenv().Settings = {
+  State = {
+    ["FarmEveryPlayer"] = false;
+    ["FarmSelectedPlayer"] = false;
+  };
+  Table = {
+    ["SelectedPlayer"] = nil;
+    ["AllPlayers"] = {};
+  };
+  Integer = {
+    ["Timeout"] = 5;
+  };
+}
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+LocalPlayer.CharacterAdded:Connect(function(NewChar)
+  Character = NewChar
+end)
+
+local Zen = {}
+
+Zen.GetHRP = function()
+  if Character:FindFirstChild("HumanoidRootPart") == nil then
+    repeat task.wait() until Character:FindFirstChild("HumanoidRootPart") ~= nil
+  end
+  return Character:FindFirstChild("HumanoidRootPart")
+end
+
+Zen.GetRemoteFunction = function()
+  if Character:FindFirstChild("RemoteFunction") == nil then
+    repeat task.wait() until Character:FindFirstChild("RemoteFunction") ~= nil
+  end
+  return Character:FindFirstChild("RemoteFunction")
+end
+
+Zen.GetRemoteEvent = function()
+  if Character:FindFirstChild("RemoteEvent") == nil then
+    repeat task.wait() until Character:FindFirstChild("RemoteEvent") ~= nil
+  end
+  return Character:FindFirstChild("RemoteEvent")
+end
+
+Zen.HasStand = function()
+  if LocalPlayer.PlayerStats.Stand.Value == "None" then
+    return false
+  end
+  return LocalPlayer.PlayerStats.Stand.Value
+end
+
+Zen.SummonStand = function()
+  if Character:FindFirstChild("SummonedStand").Value == false then
+    repeat
+      Zen.GetRemoteFunction():InvokeServer("ToggleStand", "Toggle")
+      task.wait()
+    until Character:FindFirstChild("SummonedStand").Value == true
+  end
+end
+
+Zen.GetStand = function()
+  Zen.SummonStand()
+  return Character:FindFirstChild("StandMorph")
+end
+
+Zen.Teleport = function(CFrame)
+  Character:PivotTo(CFrame)
+end
+
+Zen.ChargeHamon = function()
+  if not Character:FindFirstChild("Hamon") then
+    return
+  end
+
+  if Character.Hamon.Value <= 10 then
+    Zen.GetRemoteFunction():InvokeServer("AssignSkillKey", {["Type"] = "Spec", ["Key"] = "Enum.KeyCode.L", ["Skill"] = "Hamon Breathing"})
+    Zen.GetRemoteEvent():FireServer("InputBegan", {["Input"] = Enum.KeyCode.L})
+  end
+end
+
+Zen.BlockBreaker = function(Enemy)
+  if not Enemy or not Enemy.Parent then return end
+  local Humanoid = Enemy:FindFirstChildWhichIsA("Humanoid")
+  if not Humanoid then return end
+  
+  if CollectionService:HasTag(Enemy, "Blocking") then
+    Zen.GetRemoteEvent():FireServer("InputBegan", {["Input"] = Enum.KeyCode.R})
+    Zen.GetRemoteFunction():InvokeServer("Attack", "m2")
+    Zen.GetRemoteFunction():InvokeServer("Attack", "m1")
+  else
+    Zen.GetRemoteFunction():InvokeServer("Attack", "m1")
+  end
+end
+
+Zen.KillWithTimeout = function(Enemy)
+  local EnemyHRP = Enemy:FindFirstChild("HumanoidRootPart")
+  local EnemyHumanoid = Enemy:FindFirstChildWhichIsA("Humanoid")
+  local EnemyHealth = Enemy:FindFirstChild("Health")
+  local FocusCam
+  local HealthConnection
+  local LastHealth = EnemyHealth and EnemyHealth.Value or 0
+  local LastDamageTime = tick()
+
+  if Enemy and EnemyHRP and EnemyHumanoid and EnemyHealth and EnemyHealth.Value > 0 then
+    HealthConnection = EnemyHealth:GetPropertyChangedSignal("Value"):Connect(function()
+      if EnemyHealth.Value < LastHealth then
+        LastDamageTime = tick()
+        LastHealth = EnemyHealth.Value
+      end
+    end)
+
+    while getgenv().Settings.State.FarmEveryPlayer == true do
+      if tick() - LastDamageTime >= getgenv().Settings.Integer.Timeout then
+        break
+      end
+
+      EnemyHRP = Enemy:FindFirstChild("HumanoidRootPart")
+      EnemyHumanoid = Enemy:FindFirstChildWhichIsA("Humanoid")
+      EnemyHealth = Enemy:FindFirstChild("Health")
+      
+      if not EnemyHRP or not EnemyHumanoid or not EnemyHealth or EnemyHealth.Value <= 0 then
+        break
+      end
+
+      if Character:FindFirstChild("FocusCam") == nil then
+        FocusCam = Instance.new("ObjectValue", Character)
+        FocusCam.Name = "FocusCam"
+        FocusCam.Value = EnemyHRP
+      else
+        FocusCam = Character:FindFirstChild("FocusCam")
+        FocusCam.Value = EnemyHRP
+      end
+
+      if Zen.HasStand() ~= false then
+        Zen.GetStand().PrimaryPart.CFrame = (EnemyHRP.CFrame - EnemyHRP.CFrame.LookVector * 1.1) + (EnemyHRP.Velocity * 0.2)
+        Character.PrimaryPart.CFrame = Zen.GetStand().PrimaryPart.CFrame + Zen.GetStand().PrimaryPart.CFrame.LookVector * math.random(-3,-2) + Vector3.new(0,-35,0) 
+      else
+        Character.PrimaryPart.CFrame = EnemyHRP.CFrame - EnemyHRP.CFrame.LookVector * 2.3
+      end
+
+      for _, part in pairs(Character:GetDescendants()) do
+        if part:IsA("BasePart") then
+          part.Velocity = Vector3.new(0, 0, 0)
+          part.RotVelocity = Vector3.new(0, 0, 0)
+        end
+      end
+
+      task.spawn(function()
+        Zen.BlockBreaker(Enemy)
+      end)
+
+      task.spawn(function()
+        Zen.ChargeHamon()
+      end)
+
+      task.wait()
+    end
+
+    if HealthConnection then
+      HealthConnection:Disconnect()
+    end
+
+    if FocusCam then
+      FocusCam:Destroy()
+    end
+  end
+end
+
+Zen.KillNoTimeout = function(Enemy)
+  local EnemyHRP = Enemy:FindFirstChild("HumanoidRootPart")
+  local EnemyHumanoid = Enemy:FindFirstChildWhichIsA("Humanoid")
+  local EnemyHealth = Enemy:FindFirstChild("Health")
+  local FocusCam
+
+  if Enemy and EnemyHRP and EnemyHumanoid and EnemyHealth and EnemyHealth.Value > 0 then
+    while Enemy and EnemyHealth and EnemyHealth.Value > 0 and EnemyHRP and EnemyHumanoid do
+      if getgenv().Settings.State.FarmSelectedPlayer == false then break end
+
+      EnemyHRP = Enemy:FindFirstChild("HumanoidRootPart")
+      EnemyHumanoid = Enemy:FindFirstChildWhichIsA("Humanoid")
+      EnemyHealth = Enemy:FindFirstChild("Health")
+      
+      if not Enemy or not EnemyHRP or not EnemyHumanoid or not EnemyHealth or EnemyHealth.Value <= 0 then
+        task.wait(0.01)
+        break
+      end
+
+      if Character:FindFirstChild("FocusCam") == nil then
+        FocusCam = Instance.new("ObjectValue", Character)
+        FocusCam.Name = "FocusCam"
+        FocusCam.Value = EnemyHRP
+      else
+        FocusCam = Character:FindFirstChild("FocusCam")
+        FocusCam.Value = EnemyHRP
+      end
+
+      if Zen.HasStand() ~= false then
+        Zen.GetStand().PrimaryPart.CFrame = (EnemyHRP.CFrame - EnemyHRP.CFrame.LookVector * 1.1) + (EnemyHRP.Velocity * 0.2)
+        Character.PrimaryPart.CFrame = Zen.GetStand().PrimaryPart.CFrame + Zen.GetStand().PrimaryPart.CFrame.LookVector * math.random(-3,-2) + Vector3.new(0,-35,0) 
+      else
+        Character.PrimaryPart.CFrame = EnemyHRP.CFrame - EnemyHRP.CFrame.LookVector * 2.3
+      end
+
+      for _, part in pairs(Character:GetDescendants()) do
+        if part:IsA("BasePart") then
+          part.Velocity = Vector3.new(0, 0, 0)
+          part.RotVelocity = Vector3.new(0, 0, 0)
+        end
+      end
+
+      task.spawn(function()
+        Zen.BlockBreaker(Enemy)
+      end)
+
+      task.spawn(function()
+        Zen.ChargeHamon()
+      end)
+
+      task.wait()
+    end
+
+    if FocusCam then
+      FocusCam:Destroy()
+    end
+  end
+end
+
+local function UpdatePlayerList()
+  getgenv().Settings.Table.AllPlayers = {}
+  for _, Player in Players:GetPlayers() do
+    if Player ~= LocalPlayer then
+      table.insert(getgenv().Settings.Table.AllPlayers, Player.Name)
+    end
+  end
+end
+
+UpdatePlayerList()
+
+Players.PlayerAdded:Connect(function(NewPlayer)
+  UpdatePlayerList()
+  if PlayerDropdown then
+    PlayerDropdown:Refresh(getgenv().Settings.Table.AllPlayers)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(LeavingPlayer)
+  UpdatePlayerList()
+  if PlayerDropdown then
+    PlayerDropdown:Refresh(getgenv().Settings.Table.AllPlayers)
+  end
+  
+  if getgenv().Settings.State.FarmSelectedPlayer and getgenv().Settings.Table.SelectedPlayer == LeavingPlayer.Name then
+    getgenv().Settings.State.FarmSelectedPlayer = false
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Raw4exe/Void/refs/heads/main/Library.lua"))()
+local main = Library.new()
+
+local Tab = main:create_tab("Combat", "rbxassetid://6031360365")
+
+local EveryPlayerModule = Tab:create_module({
+  title = "Target Everyone",
+  flag = "FarmEveryPlayer_Module",
+  description = "Еби каждого пока его очко не сгорит",
+  section = "left"
+})
+
+EveryPlayerModule:create_checkbox({
+  title = "Enable",
+  flag = "FarmEveryPlayer_Enable",
+  callback = function(Value)
+    getgenv().Settings.State.FarmEveryPlayer = Value
+
+    if Value then
+      task.spawn(function()
+        local OldPos = Zen.GetHRP().CFrame
+
+        while getgenv().Settings.State.FarmEveryPlayer == true do
+          for _, PlayerName in ipairs(getgenv().Settings.Table.AllPlayers) do
+            if getgenv().Settings.State.FarmEveryPlayer == false then break end
+            
+            local TargetPlayer = Players:FindFirstChild(PlayerName)
+            if TargetPlayer and TargetPlayer.Character then
+              pcall(function()
+                Zen.KillWithTimeout(TargetPlayer.Character)
+              end)
+            end
+          end
+
+          task.wait()
+        end
+        Zen.Teleport(OldPos)
+      end)
+    end
+  end
+})
+
+EveryPlayerModule:create_slider({
+  title = "Timeout",
+  flag = "FarmEveryPlayer_Timeout",
+  minimum_value = 1,
+  maximum_value = 30,
+  value = 5,
+  round_number = true,
+  callback = function(Value)
+    getgenv().Settings.Integer.Timeout = Value
+  end
+})
+
+local SelectedPlayerModule = Tab:create_module({
+  title = "Target Selected",
+  flag = "FarmSelectedPlayer_Module",
+  description = "Еби тока одного уебана пока он не кончит",
+  section = "right"
+})
+
+SelectedPlayerModule:create_checkbox({
+  title = "Enable",
+  flag = "FarmSelectedPlayer_Enable",
+  callback = function(Value)
+    getgenv().Settings.State.FarmSelectedPlayer = Value
+
+    if Value then
+      task.spawn(function()
+        local OldPos = Zen.GetHRP().CFrame
+
+        while getgenv().Settings.State.FarmSelectedPlayer == true do
+          local SelectedPlayer = getgenv().Settings.Table.SelectedPlayer
+          
+          if SelectedPlayer then
+            local TargetPlayer = Players:FindFirstChild(SelectedPlayer)
+            if TargetPlayer and TargetPlayer.Character then
+              pcall(function()
+                Zen.KillNoTimeout(TargetPlayer.Character)
+              end)
+            else
+              break
+            end
+          end
+
+          task.wait()
+        end
+        Zen.Teleport(OldPos)
+      end)
+    end
+  end
+})
+
+PlayerDropdown = SelectedPlayerModule:create_dropdown({
+  title = "Choose Player",
+  flag = "FarmSelectedPlayer_SelectPlayer",
+  options = getgenv().Settings.Table.AllPlayers,
+  multi_dropdown = false,
+  callback = function(Value)
+    getgenv().Settings.Table.SelectedPlayer = Value
+  end
+})
+
+main:load()
