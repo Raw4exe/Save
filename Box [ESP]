@@ -1,0 +1,134 @@
+getgenv().BoxInfo = {
+  State = {
+    ["Box"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupBox = function(Player)
+  local BoxObject = getgenv().BoxInfo.Objects[Player]
+  if not BoxObject then return end
+  
+  if BoxObject.BoxModel then
+    pcall(function() BoxObject.BoxModel:Destroy() end)
+  end
+  
+  if BoxObject.Connection then
+    BoxObject.Connection:Disconnect()
+  end
+  
+  getgenv().BoxInfo.Objects[Player] = nil
+end
+
+Zen.CreateBox = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local BoxObject = {}
+  
+  BoxObject.BoxModel = Instance.new("Model")
+  BoxObject.BoxModel.Parent = nil
+  BoxObject.BoxModel.Name = "ESP_Box_" .. Player.Name
+  
+  BoxObject.BoxPart = Instance.new("Part")
+  BoxObject.BoxPart.Parent = BoxObject.BoxModel
+  BoxObject.BoxPart.Name = "Box"
+  BoxObject.BoxPart.Anchored = true
+  BoxObject.BoxPart.CanCollide = false
+  BoxObject.BoxPart.Transparency = 1
+  BoxObject.BoxPart.Size = Vector3.new(4, 6, 4)
+  BoxObject.BoxPart.CastShadow = false
+  
+  BoxObject.BoxAdornment = Instance.new("BoxHandleAdornment")
+  BoxObject.BoxAdornment.Parent = BoxObject.BoxPart
+  BoxObject.BoxAdornment.Adornee = BoxObject.BoxPart
+  BoxObject.BoxAdornment.Size = Vector3.new(4, 6, 4)
+  BoxObject.BoxAdornment.Color3 = Color3.fromRGB(255, 255, 255)
+  BoxObject.BoxAdornment.AlwaysOnTop = true
+  BoxObject.BoxAdornment.ZIndex = 1
+  BoxObject.BoxAdornment.Transparency = 0.5
+  
+  BoxObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if BoxObject.BoxModel then
+        BoxObject.BoxModel.Parent = nil
+      end
+      return
+    end
+    
+    if getgenv().BoxInfo.State.Box then
+      local RootCFrame = Player.Character.HumanoidRootPart.CFrame
+      BoxObject.BoxPart.CFrame = RootCFrame
+      BoxObject.BoxModel.Parent = workspace
+    else
+      BoxObject.BoxModel.Parent = nil
+    end
+  end)
+  
+  getgenv().BoxInfo.Objects[Player] = BoxObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupBox(Player)
+    Zen.CreateBox(Player)
+  end)
+end
+
+Zen.EnableBox = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().BoxInfo.Objects[Player] then
+      Zen.CreateBox(Player)
+    end
+  end
+end
+
+Zen.DisableBox = function()
+  for Player, _ in pairs(getgenv().BoxInfo.Objects) do
+    Zen.CleanupBox(Player)
+  end
+  getgenv().BoxInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateBox(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().BoxInfo.Objects[Player] then
+    Zen.CleanupBox(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local BoxModule = Tab:create_module({
+  title = ".",
+  flag = "Box_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().BoxInfo.State.Box = Value
+    if Value then
+      Zen.EnableBox()
+    else
+      Zen.DisableBox()
+    end
+  end
+})
+
+Main:load()
