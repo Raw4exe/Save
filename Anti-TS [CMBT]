@@ -1,0 +1,89 @@
+getgenv().AntiTS = getgenv().AntiTS or {
+    State = {
+        ["Enabled"] = false;
+    };
+    Integer = {
+        ["Delay"] = 1;
+    };
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+Player.CharacterAdded:Connect(function(NewChar)
+    Character = NewChar
+end)
+
+local Zen = {}
+
+Zen.GetHRP = function()
+    if Character:FindFirstChild("HumanoidRootPart") == nil then
+        repeat task.wait() until Character:FindFirstChild("HumanoidRootPart") ~= nil
+    end
+    return Character:FindFirstChild("HumanoidRootPart")
+end
+
+Zen.GetCFrame = function()
+    return Zen.GetHRP().CFrame
+end
+
+Zen.Teleport = function(CFrame)
+    Character:PivotTo(CFrame)
+end
+
+Zen.AntiTimeStop = function(Child)
+    local OldCFrame = nil
+
+    if Child.Name == "TimeStopping" or Child.Name == "Time-Stopping" then
+        if Player:DistanceFromCharacter(workspace.Living[tostring(Child.Parent)].PrimaryPart.Position) < 25 then
+            OldCFrame = Zen.GetCFrame()
+            
+            Zen.Teleport(CFrame.new(800,1000,500))
+
+            task.wait(1)
+
+            Zen.Teleport(OldCFrame)
+        else
+            return
+        end
+    end
+end
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Raw4exe/Void/refs/heads/main/Library.lua"))()
+local Main = Library.new()
+
+local MainTab = Main:create_tab(".", "rbxassetid://76499042599127")
+
+local AntiTSModule = MainTab:create_module({
+    title = ".",
+    flag = "AntiTS",
+    description = ".",
+    section = "left",
+    callback = function(Value)
+        AntiTS.State["Enabled"] = Value
+        getgenv().AntiTSLoop = nil
+
+        if AntiTS.State["Enabled"] then
+            AntiTSLoop = workspace.Living.DescendantAdded:Connect(function(Child)
+                Zen.AntiTimeStop(Child)
+            end)
+        end
+    end
+})
+
+AntiTSModule:create_slider({
+    title = ".",
+    flag = "AntiTS_Delay",
+    maximum_value = 2,
+    minimum_value = 0,
+    value = AntiTS.Integer["Delay"],
+    round_number = false,
+    callback = function(Value)
+        AntiTS.Integer["Delay"] = Value
+    end
+})
+
+Main:load()
