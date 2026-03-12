@@ -1,0 +1,159 @@
+getgenv().DistanceInfo = {
+  State = {
+    ["Distance"] = false;
+  };
+  Objects = {};
+}
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local Zen = {}
+
+Zen.CleanupDistance = function(Player)
+  local DistanceObject = getgenv().DistanceInfo.Objects[Player]
+  if not DistanceObject then return end
+  
+  if DistanceObject.BillboardGui then
+    pcall(function() DistanceObject.BillboardGui:Destroy() end)
+  end
+  
+  if DistanceObject.Connection then
+    DistanceObject.Connection:Disconnect()
+  end
+  
+  getgenv().DistanceInfo.Objects[Player] = nil
+end
+
+Zen.CreateDistance = function(Player)
+  if Player == LocalPlayer then return end
+  if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+  
+  local Character = Player.Character
+  local HumanoidRootPart = Character.HumanoidRootPart
+  local DistanceObject = {}
+  
+  DistanceObject.BillboardGui = Instance.new("BillboardGui")
+  DistanceObject.BillboardGui.Parent = HumanoidRootPart
+  DistanceObject.BillboardGui.Size = UDim2.new(0, 200, 0, 50)
+  DistanceObject.BillboardGui.StudsOffset = Vector3.new(0, 1, 0)
+  DistanceObject.BillboardGui.AlwaysOnTop = true
+  DistanceObject.BillboardGui.Enabled = getgenv().DistanceInfo.State.Distance
+  
+  DistanceObject.DistanceLabel = Instance.new("TextLabel")
+  DistanceObject.DistanceLabel.Parent = DistanceObject.BillboardGui
+  DistanceObject.DistanceLabel.Size = UDim2.new(0, 0, 0, 0)
+  DistanceObject.DistanceLabel.AutomaticSize = Enum.AutomaticSize.XY
+  DistanceObject.DistanceLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+  DistanceObject.DistanceLabel.BackgroundTransparency = 0.5
+  DistanceObject.DistanceLabel.BorderSizePixel = 0
+  DistanceObject.DistanceLabel.Text = "(0m)"
+  DistanceObject.DistanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+  DistanceObject.DistanceLabel.TextStrokeTransparency = 0
+  DistanceObject.DistanceLabel.Font = Enum.Font.Code
+  DistanceObject.DistanceLabel.TextSize = 12
+  DistanceObject.DistanceLabel.TextXAlignment = Enum.TextXAlignment.Center
+  DistanceObject.DistanceLabel.TextYAlignment = Enum.TextYAlignment.Center
+  DistanceObject.DistanceLabel.ZIndex = 10
+  DistanceObject.DistanceLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+  DistanceObject.DistanceLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+  
+  local DistanceGradient = Instance.new("UIGradient")
+  DistanceGradient.Parent = DistanceObject.DistanceLabel
+  DistanceGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(128, 128, 128)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+  })
+  DistanceGradient.Rotation = 90
+  
+  local DistancePadding = Instance.new("UIPadding")
+  DistancePadding.Parent = DistanceObject.DistanceLabel
+  DistancePadding.PaddingLeft = UDim.new(0, 5)
+  DistancePadding.PaddingRight = UDim.new(0, 5)
+  DistancePadding.PaddingTop = UDim.new(0, 3)
+  DistancePadding.PaddingBottom = UDim.new(0, 3)
+  
+  local DistanceCorner = Instance.new("UICorner")
+  DistanceCorner.Parent = DistanceObject.DistanceLabel
+  DistanceCorner.CornerRadius = UDim.new(0, 6)
+  
+  DistanceObject.Connection = RunService.RenderStepped:Connect(function()
+    if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+      if DistanceObject.BillboardGui then
+        DistanceObject.BillboardGui.Enabled = false
+      end
+      return
+    end
+    
+    if DistanceObject.BillboardGui then
+      DistanceObject.BillboardGui.Enabled = getgenv().DistanceInfo.State.Distance
+      
+      if getgenv().DistanceInfo.State.Distance and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local Distance = (LocalPlayer.Character.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+        DistanceObject.DistanceLabel.Text = "(" .. math.floor(Distance) .. "m)"
+      end
+    end
+  end)
+  
+  getgenv().DistanceInfo.Objects[Player] = DistanceObject
+  
+  Player.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    Zen.CleanupDistance(Player)
+    Zen.CreateDistance(Player)
+  end)
+end
+
+Zen.EnableDistance = function()
+  for _, Player in pairs(Players:GetPlayers()) do
+    if Player ~= LocalPlayer and not getgenv().DistanceInfo.Objects[Player] then
+      Zen.CreateDistance(Player)
+    end
+  end
+end
+
+Zen.DisableDistance = function()
+  for Player, _ in pairs(getgenv().DistanceInfo.Objects) do
+    Zen.CleanupDistance(Player)
+  end
+  getgenv().DistanceInfo.Objects = {}
+end
+
+Players.PlayerAdded:Connect(function(Player)
+  if Player ~= LocalPlayer then
+    repeat task.wait() until Player.Character
+    task.wait(0.5)
+    Zen.CreateDistance(Player)
+  end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+  if getgenv().DistanceInfo.Objects[Player] then
+    Zen.CleanupDistance(Player)
+  end
+end)
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MarchHubOnTopFr/Allusive-UI/refs/heads/main/Source.lua"))()
+
+local Main = Library.new()
+
+local Tab = Main:create_tab(".", "rbxassetid://126017907477623")
+
+local DistanceModule = Tab:create_module({
+  title = ".",
+  flag = "Distance_Module",
+  description = ".",
+  section = "left",
+  callback = function(Value)
+    getgenv().DistanceInfo.State.Distance = Value
+    if Value then
+      Zen.EnableDistance()
+    else
+      Zen.DisableDistance()
+    end
+  end
+})
+
+Main:load()
