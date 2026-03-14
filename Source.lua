@@ -25,7 +25,7 @@ function convertStringToTable(inputString)
     local result = {}
     for value in string.gmatch(inputString, "([^,]+)") do
         local trimmedValue = value:match("^%s*(.-)%s*$")
-        tablein(result, trimmedValue)
+        table.insert(result, trimmedValue)
     end
 
     return result
@@ -465,6 +465,7 @@ function Library.SendNotification(settings)
             Notification:Destroy()
         end)
     end)
+end
 end
 
 function Library.SendWarning(settings)
@@ -1310,6 +1311,7 @@ function Library:create_ui()
                 }):Play()
             end
         end
+    end
     end
 
     function self:update_sections(left_section: ScrollingFrame, right_section: ScrollingFrame)
