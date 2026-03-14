@@ -468,26 +468,29 @@ function Library.SendNotification(settings)
 end
 
 function Library.SendWarning(settings)
+    local MainGui = CoreGui:FindFirstChild('Zero')
+    if not MainGui then return end
+    
     local WarningContainer = Instance.new("Frame")
     WarningContainer.Name = "WarningContainer"
     WarningContainer.Size = UDim2.new(1, 0, 1, 0)
     WarningContainer.Position = UDim2.new(0, 0, 0, 0)
     WarningContainer.BackgroundTransparency = 1
     WarningContainer.ZIndex = 1000
-    WarningContainer.Parent = CoreGui:FindFirstChild('Zero') or CoreGui
+    WarningContainer.Parent = MainGui
     
     local BlurFrame = Instance.new("Frame")
     BlurFrame.Name = "BlurFrame"
     BlurFrame.Size = UDim2.new(1, 0, 1, 0)
     BlurFrame.Position = UDim2.new(0, 0, 0, 0)
     BlurFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    BlurFrame.BackgroundTransparency = 0.5
+    BlurFrame.BackgroundTransparency = 1
     BlurFrame.ZIndex = 1001
     BlurFrame.Parent = WarningContainer
     
     local WarningFrame = Instance.new("Frame")
     WarningFrame.Name = "WarningFrame"
-    WarningFrame.Size = UDim2.new(0, 400, 0, 200)
+    WarningFrame.Size = UDim2.new(0, 0, 0, 0)
     WarningFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     WarningFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     WarningFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
@@ -566,14 +569,12 @@ function Library.SendWarning(settings)
     CloseCorner.CornerRadius = UDim.new(0, 5)
     CloseCorner.Parent = CloseButton
     
-    WarningFrame.Size = UDim2.new(0, 0, 0, 0)
+    local fadeInTween = TweenService:Create(BlurFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0.3
+    })
     
     local openTween = TweenService:Create(WarningFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
         Size = UDim2.new(0, 400, 0, 200)
-    })
-    
-    local fadeInTween = TweenService:Create(BlurFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-        BackgroundTransparency = 0.3
     })
     
     fadeInTween:Play()
@@ -1951,7 +1952,7 @@ function Library:create_ui()
                 if self._size == 0 then
                     self._size = 11
                 end
-                self._size += 32
+                self._size += 28
             
                 if ModuleManager._state then
                     Module.Size = UDim2.fromOffset(241, 93 + self._size)
@@ -1964,28 +1965,75 @@ function Library:create_ui()
                 Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
                 Button.Text = settings.title or "Button"
                 Button.AutoButtonColor = false
-                Button.BackgroundTransparency = 0.1
+                Button.BackgroundTransparency = 0.2
                 Button.Name = "Button"
-                Button.Size = UDim2.new(0, 207, 0, 25)
+                Button.Size = UDim2.new(0, 207, 0, 22)
                 Button.BorderSizePixel = 0
-                Button.TextSize = 12
-                Button.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+                Button.TextSize = 11
+                Button.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
                 Button.Parent = Options
                 Button.LayoutOrder = LayoutOrderModule
             
                 local UICorner = Instance.new("UICorner")
                 UICorner.CornerRadius = UDim.new(0, 4)
                 UICorner.Parent = Button
+                
+                local UIStroke = Instance.new("UIStroke")
+                UIStroke.Color = Color3.fromRGB(52, 66, 89)
+                UIStroke.Transparency = 0.5
+                UIStroke.Thickness = 1
+                UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                UIStroke.Parent = Button
+                
+                local Shadow = Instance.new("Frame")
+                Shadow.Name = "Shadow"
+                Shadow.Size = UDim2.new(1, 4, 1, 4)
+                Shadow.Position = UDim2.new(0, -2, 0, 2)
+                Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                Shadow.BackgroundTransparency = 0.8
+                Shadow.BorderSizePixel = 0
+                Shadow.ZIndex = Button.ZIndex - 1
+                Shadow.Parent = Button
+                
+                local ShadowCorner = Instance.new("UICorner")
+                ShadowCorner.CornerRadius = UDim.new(0, 4)
+                ShadowCorner.Parent = Shadow
             
                 Button.MouseEnter:Connect(function()
-                    TweenService:Create(Button, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                        BackgroundColor3 = Color3.fromRGB(172, 201, 255)
+                    TweenService:Create(Button, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        BackgroundColor3 = Color3.fromRGB(42, 50, 66),
+                        Size = UDim2.new(0, 209, 0, 23)
+                    }):Play()
+                    TweenService:Create(UIStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Transparency = 0.3
+                    }):Play()
+                    TweenService:Create(Shadow, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        BackgroundTransparency = 0.6
                     }):Play()
                 end)
             
                 Button.MouseLeave:Connect(function()
-                    TweenService:Create(Button, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                        BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+                    TweenService:Create(Button, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        BackgroundColor3 = Color3.fromRGB(32, 38, 51),
+                        Size = UDim2.new(0, 207, 0, 22)
+                    }):Play()
+                    TweenService:Create(UIStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Transparency = 0.5
+                    }):Play()
+                    TweenService:Create(Shadow, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        BackgroundTransparency = 0.8
+                    }):Play()
+                end)
+                
+                Button.MouseButton1Down:Connect(function()
+                    TweenService:Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Size = UDim2.new(0, 205, 0, 21)
+                    }):Play()
+                end)
+                
+                Button.MouseButton1Up:Connect(function()
+                    TweenService:Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                        Size = UDim2.new(0, 209, 0, 23)
                     }):Play()
                 end)
             
@@ -2215,7 +2263,7 @@ function Library:create_ui()
                     local number_threshold = math.clamp(rounded_number, settings.minimum_value, settings.maximum_value)
     
                     Library._config._flags[settings.flag] = number_threshold
-                    Value.Text = number_threshold
+                    Value.Text = number_threshold .. (settings.suffix or "")
     
                     TweenService:Create(Fill, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                         Size = UDim2.fromOffset(slider_size, Drag.Size.Y.Offset)
@@ -2278,15 +2326,30 @@ function Library:create_ui()
 
                 local DropdownManager = {
                     _state = false,
-                    _size = 0
+                    _size = 0,
+                    _options = {}
                 }
+
+                if settings.options then
+                    for i, option in pairs(settings.options) do
+                        if typeof(option) == "table" then
+                            DropdownManager._options[option.name or tostring(option.value)] = option.value
+                        else
+                            DropdownManager._options[tostring(option)] = option
+                        end
+                    end
+                else
+                    DropdownManager._options = {}
+                end
+
+                local max_options = settings.max_options or math.min(#DropdownManager._options, 5)
 
                 if not settings.Order then
                     if self._size == 0 then
                         self._size = 11
                     end
 
-                    self._size += 44
+                    self._size += 44 + (max_options * 22)
                 end;
 
                 if not settings.Order then
