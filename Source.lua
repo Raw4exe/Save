@@ -467,6 +467,155 @@ function Library.SendNotification(settings)
     end)
 end
 
+function Library.SendWarning(settings)
+    local WarningContainer = Instance.new("Frame")
+    WarningContainer.Name = "WarningContainer"
+    WarningContainer.Size = UDim2.new(1, 0, 1, 0)
+    WarningContainer.Position = UDim2.new(0, 0, 0, 0)
+    WarningContainer.BackgroundTransparency = 1
+    WarningContainer.ZIndex = 1000
+    WarningContainer.Parent = CoreGui:FindFirstChild('Zero') or CoreGui
+    
+    local BlurFrame = Instance.new("Frame")
+    BlurFrame.Name = "BlurFrame"
+    BlurFrame.Size = UDim2.new(1, 0, 1, 0)
+    BlurFrame.Position = UDim2.new(0, 0, 0, 0)
+    BlurFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    BlurFrame.BackgroundTransparency = 0.5
+    BlurFrame.ZIndex = 1001
+    BlurFrame.Parent = WarningContainer
+    
+    local WarningFrame = Instance.new("Frame")
+    WarningFrame.Name = "WarningFrame"
+    WarningFrame.Size = UDim2.new(0, 400, 0, 200)
+    WarningFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    WarningFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    WarningFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
+    WarningFrame.BackgroundTransparency = 0.05
+    WarningFrame.BorderSizePixel = 0
+    WarningFrame.ZIndex = 1002
+    WarningFrame.Parent = WarningContainer
+    
+    local WarningCorner = Instance.new("UICorner")
+    WarningCorner.CornerRadius = UDim.new(0, 10)
+    WarningCorner.Parent = WarningFrame
+    
+    local WarningStroke = Instance.new("UIStroke")
+    WarningStroke.Color = Color3.fromRGB(255, 100, 100)
+    WarningStroke.Transparency = 0.3
+    WarningStroke.Thickness = 2
+    WarningStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    WarningStroke.Parent = WarningFrame
+    
+    local WarningIcon = Instance.new("ImageLabel")
+    WarningIcon.Name = "WarningIcon"
+    WarningIcon.Size = UDim2.new(0, 32, 0, 32)
+    WarningIcon.Position = UDim2.new(0, 20, 0, 20)
+    WarningIcon.BackgroundTransparency = 1
+    WarningIcon.Image = "rbxassetid://6031094678"
+    WarningIcon.ImageColor3 = Color3.fromRGB(255, 100, 100)
+    WarningIcon.ZIndex = 1003
+    WarningIcon.Parent = WarningFrame
+    
+    local WarningTitle = Instance.new("TextLabel")
+    WarningTitle.Name = "WarningTitle"
+    WarningTitle.Size = UDim2.new(1, -70, 0, 32)
+    WarningTitle.Position = UDim2.new(0, 60, 0, 20)
+    WarningTitle.BackgroundTransparency = 1
+    WarningTitle.Text = settings.title or "Warning"
+    WarningTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    WarningTitle.TextTransparency = 0.2
+    WarningTitle.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+    WarningTitle.TextSize = 16
+    WarningTitle.TextXAlignment = Enum.TextXAlignment.Left
+    WarningTitle.TextYAlignment = Enum.TextYAlignment.Center
+    WarningTitle.ZIndex = 1003
+    WarningTitle.Parent = WarningFrame
+    
+    local WarningText = Instance.new("TextLabel")
+    WarningText.Name = "WarningText"
+    WarningText.Size = UDim2.new(1, -40, 0, 100)
+    WarningText.Position = UDim2.new(0, 20, 0, 60)
+    WarningText.BackgroundTransparency = 1
+    WarningText.Text = settings.text or "This is a warning message."
+    WarningText.TextColor3 = Color3.fromRGB(200, 200, 200)
+    WarningText.TextTransparency = 0.3
+    WarningText.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    WarningText.TextSize = 12
+    WarningText.TextXAlignment = Enum.TextXAlignment.Left
+    WarningText.TextYAlignment = Enum.TextYAlignment.Top
+    WarningText.TextWrapped = true
+    WarningText.ZIndex = 1003
+    WarningText.Parent = WarningFrame
+    
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Size = UDim2.new(0, 100, 0, 30)
+    CloseButton.Position = UDim2.new(1, -120, 1, -50)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    CloseButton.BackgroundTransparency = 0.1
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Text = "OK"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+    CloseButton.TextSize = 12
+    CloseButton.ZIndex = 1003
+    CloseButton.Parent = WarningFrame
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 5)
+    CloseCorner.Parent = CloseButton
+    
+    WarningFrame.Size = UDim2.new(0, 0, 0, 0)
+    
+    local openTween = TweenService:Create(WarningFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 400, 0, 200)
+    })
+    
+    local fadeInTween = TweenService:Create(BlurFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0.3
+    })
+    
+    fadeInTween:Play()
+    openTween:Play()
+    
+    local function closeWarning()
+        local closeTween = TweenService:Create(WarningFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Size = UDim2.new(0, 0, 0, 0)
+        })
+        
+        local fadeOutTween = TweenService:Create(BlurFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+            BackgroundTransparency = 1
+        })
+        
+        closeTween:Play()
+        fadeOutTween:Play()
+        
+        closeTween.Completed:Connect(function()
+            WarningContainer:Destroy()
+        end)
+        
+        if settings.callback then
+            settings.callback()
+        end
+    end
+    
+    CloseButton.MouseButton1Click:Connect(closeWarning)
+    BlurFrame.MouseButton1Click:Connect(closeWarning)
+    
+    CloseButton.MouseEnter:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(172, 201, 255)
+        }):Play()
+    end)
+    
+    CloseButton.MouseLeave:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+        }):Play()
+    end)
+end
+
 function Library:get_screen_scale()
     local viewport_size_x = workspace.CurrentCamera.ViewportSize.X
 
@@ -848,10 +997,18 @@ function Library:create_ui()
         for _, object in Sections:GetChildren() do
             if object == left_section or object == right_section then
                 object.Visible = true
+                TweenService:Create(object, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Position = UDim2.new(object.Position.X.Scale, 0, object.Position.Y.Scale, 0)
+                }):Play()
 
                 continue
             end
 
+            TweenService:Create(object, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+                Position = UDim2.new(object.Position.X.Scale, -300, object.Position.Y.Scale, 0)
+            }):Play()
+            
+            task.wait(0.3)
             object.Visible = false
         end
     end
