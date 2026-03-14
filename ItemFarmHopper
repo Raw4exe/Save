@@ -1,58 +1,38 @@
-getgenv().Webhook = "" -- enter your webhook url here
-getgenv().ItemCollectionDelay = 0.5 -- set a longer delay if you get kicked
-getgenv().AutoSell = true -- auto sell all items 
-getgenv().AutoBuyLuckyArrow = true -- auto buy lucky arrows untill max
-getgenv().NoRenderingScreen = false -- small optimization
-
-getgenv().ItemsToFarm = {
-    ["Ancient Scroll"] = true,
-    ["Blue Candy"] = true,
-    ["Caesar's Headband"] = true,
-    ["Christmas Present"] = true,
-    ["Clackers"] = true,
-    ["Diamond"] = true,
-    ["Dio's Diary"] = true,
-    ["Gold Coin"] = true,
-    ["Green Candy"] = true,
-    ["Lucky Arrow"] = true,
-    ["Lucky Stone Mask"] = true,
-    ["Mysterious Arrow"] = true,
-    ["Pure Rokakaka"] = true,
-    ["Quinton's Glove"] = true,
-    ["Red Candy"] = true,
-    ["Rib Cage of The Saint's Corpse"] = true,
-    ["Rokakaka"] = true,
-    ["Steel Ball"] = true,
-    ["Stone Mask"] = true,
-    ["Yellow Candy"] = true,
-    ["Zeppeli's Hat"] = true,
+getgenv().Config = {
+    Settings = {
+        ["Webhook"] = "",
+        ["ItemCollectionDelay"] = "0.5",
+        ["AutoSell"] = "true",
+        ["AutoBuyLuckyArrow"] = "true",
+        ["NoRenderingScreen"] = "false"
+    },
+    ItemsToFarm = {
+        ["Ancient Scroll"] = true,
+        ["Blue Candy"] = true,
+        ["Caesar's Headband"] = true,
+        ["Christmas Present"] = true,
+        ["Clackers"] = true,
+        ["Diamond"] = true,
+        ["Dio's Diary"] = true,
+        ["Gold Coin"] = true,
+        ["Green Candy"] = true,
+        ["Lucky Arrow"] = true,
+        ["Lucky Stone Mask"] = true,
+        ["Mysterious Arrow"] = true,
+        ["Pure Rokakaka"] = true,
+        ["Quinton's Glove"] = true,
+        ["Red Candy"] = true,
+        ["Rib Cage of The Saint's Corpse"] = true,
+        ["Rokakaka"] = true,
+        ["Steel Ball"] = true,
+        ["Stone Mask"] = true,
+        ["Yellow Candy"] = true,
+        ["Zeppeli's Hat"] = true,
+    }
 }
 
-local ItemPriority = {
-    ["Lucky Arrow"] = 1,
-    ["Lucky Stone Mask"] = 2,
-    ["Christmas Present"] = 3,
-    ["Red Candy"] = 4,
-    ["Blue Candy"] = 5,
-    ["Yellow Candy"] = 6,
-    ["Green Candy"] = 7,
-    ["Dio's Diary"] = 8,
-    ["Pure Rokakaka"] = 9,
-    ["Rib Cage of The Saint's Corpse"] = 10,
-    ["Clackers"] = 11,
-    ["Steel Ball"] = 12,
-    ["Quinton's Glove"] = 13,
-    ["Zeppeli's Hat"] = 14,
-    ["Stone Mask"] = 15,
-    ["Ancient Scroll"] = 16,
-    ["Caesar's Headband"] = 17,
-    ["Rokakaka"] = 18,
-    ["Diamond"] = 19,
-    ["Mysterious Arrow"] = 20,
-    ["Gold Coin"] = 21,
-}
-local BuyLucky = true
-local AutoSell = true
+local function parseBool(str) return str == "true" end
+
 local SellItems = {
     ["Gold Coin"] = true,
     ["Rokakaka"] = true,
@@ -70,49 +50,50 @@ local SellItems = {
     ["Dio's Diary"] = true
 }
 
+-- services
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
 
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
+-- rejoin on kcik
 game:GetService("CoreGui").DescendantAdded:Connect(function(child)
     if child.Name == "ErrorPrompt" then
         local GrabError = child:FindFirstChild("ErrorMessage",true)
         repeat task.wait() until GrabError.Text ~= "Label"
         local Reason = GrabError.Text
         if Reason:match("kick") or Reason:match("You") or Reason:match("conn") or Reason:match("rejoin") then
-            game:GetService("TeleportService"):Teleport(2809202155, game:GetService("Players").LocalPlayer)
+            TeleportService:Teleport(2809202155, Player)
         end
     end
 end)
 
-repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer and game.Players.LocalPlayer.Character
+repeat task.wait() until game:IsLoaded() and Player and Player.Character
 
-
-local LocalPlayer = game.Players.LocalPlayer
+local LocalPlayer = Player
 local Character = LocalPlayer.Character
 repeat task.wait() until Character:FindFirstChild("RemoteEvent") and Character:FindFirstChild("RemoteFunction")
 local RemoteFunction, RemoteEvent = Character.RemoteFunction, Character.RemoteEvent
 local HRP = Character.PrimaryPart
-local part
-local dontTPOnDeath = true
 
-
+--skip loading screen
 if not LocalPlayer.PlayerGui:FindFirstChild("HUD") then
-    local HUD = game:GetService("ReplicatedStorage").Objects.HUD:Clone()
+    local HUD = ReplicatedStorage.Objects.HUD:Clone()
     HUD.Parent = LocalPlayer.PlayerGui
 end
 
 RemoteEvent:FireServer("PressedPlay")
 
 if LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1") then
- wait(2)
+    wait(2)
     if LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1") then
-    LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1"):Destroy()
+        LocalPlayer.PlayerGui:FindFirstChild("LoadingScreen1"):Destroy()
     end
 end
 
@@ -126,10 +107,11 @@ task.spawn(function()
     end
 end)
 
-if getgenv().NoRenderingScreen then
-    game:GetService("RunService"):Set3dRenderingEnabled(false)
+if parseBool(getgenv().Config.Settings.NoRenderingScreen) then
+    RunService:Set3dRenderingEnabled(false)
 end
 
+-- boost fps / low graphics
 local function SetLowGraphics()
     local sethiddenproperty = sethiddenproperty or set_hidden_property or set_hidden_prop
     
@@ -156,26 +138,22 @@ local function SetLowGraphics()
         end)
     end
     
-    -- Удаляем эффекты из Lighting
     for i,v in pairs(game.Lighting:GetChildren()) do
         v:Destroy()
     end
     
-    -- Блокируем добавление эффектов в Lighting
     game:GetService("Lighting").ChildAdded:Connect(function(b)
         if b.Name == "ColorCorrection" or b.Name == "SunRays" or b.Name == "SoulCryCD" then
             b:Destroy()
         end
     end)
     
-    -- Блокируем эффекты в workspace.Effects
     workspace.Effects.ChildAdded:Connect(function(lol)
         if lol.Name == "ChaosEnergy" then
             lol:Destroy()
         end
     end)
     
-    -- Блокируем эффекты в Camera
     workspace.Camera.ChildAdded:Connect(function(a)
         if a.Name == "DarkBorder" or a.Name == "DarkClouds" or a.Name == "DarkSky1" or a.Name == "DarkSky2" then
             a:Destroy()
@@ -185,6 +163,7 @@ end
 
 SetLowGraphics()
 
+-- steal dropped money
 workspace.ChildAdded:Connect(function(Child)
     if Child.Name == "Money" then
         task.wait(0.55)
@@ -195,12 +174,13 @@ workspace.ChildAdded:Connect(function(Child)
     end
 end)
 
+-- webhooks
 local function SendWebhook(msg, ping)
-    if getgenv().webhook == "" then
+    if getgenv().Config.Settings.Webhook == "" then
         return
     end
     
-    local url = getgenv().webhook
+    local url = getgenv().Config.Settings.Webhook
     local content = ping and "@everyone" or ""
     local data = {
         ["content"] = content,
@@ -211,7 +191,7 @@ local function SendWebhook(msg, ping)
         }}
     }
     
-    local newdata = game:GetService("HttpService"):JSONEncode(data)
+    local newdata = HttpService:JSONEncode(data)
     local headers = {["Content-Type"] = "application/json"}
     local request = http_request or request or HttpPost or syn.request or http.request
     
@@ -273,6 +253,7 @@ end)
 
 local Has2x = MarketplaceService:UserOwnsGamePassAsync(Player.UserId, 14597778)
 
+-- magnitude hook
 local oldMagnitude
 oldMagnitude = hookmetamethod(Vector3.new(), "__index", newcclosure(function(self, index)
     local CallingScript = tostring(getcallingscript())
@@ -355,19 +336,29 @@ local function HasLuckyArrows()
     return Count >= 9
 end
 
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
-local PlaceId = game.PlaceId
-
+-- server hop func
 function ServerHop()
-    local servers = HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceId .. '/servers/Public?sortOrder=Asc&limit=100'))
+    local success, servers = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/2809202155/servers/Public?sortOrder=Asc&limit=100'))
+    end)
     
-    for _, server in pairs(servers.data) do
-        if server.id ~= game.JobId and server.playing < server.maxPlayers then
-            TeleportService:TeleportToPlaceInstance(PlaceId, server.id, Player)
+    if success and servers and servers.data then
+        local availableServers = {}
+        
+        for _, server in pairs(servers.data) do
+            if server.id ~= game.JobId and server.playing < server.maxPlayers and server.playing > 5 then
+                table.insert(availableServers, server)
+            end
+        end
+        
+        if #availableServers > 0 then
+            local randomServer = availableServers[math.random(1, #availableServers)]
+            TeleportService:TeleportToPlaceInstance(2809202155, randomServer.id, Player)
             return
         end
     end
+    
+    TeleportService:Teleport(2809202155, Player)
 end
 
 task.spawn(function()
@@ -385,6 +376,7 @@ task.spawn(function()
     ServerHop()
 end)
 
+-- item farm util
 local function IdentifyItem(Item)
     repeat task.wait() until Item:FindFirstChild("ProximityPrompt")
     for _, Instance in Item:GetChildren() do
@@ -441,6 +433,7 @@ ItemSpawnFolder.ChildRemoved:Connect(function(Child)
     getgenv().ItemQueue[Child] = nil
 end)
 
+-- tp hook
 local UzuKeeIsRetardedAndDoesntKnowHowToMakeAnAntiCheatOnTheServerSideAlsoVexStfuIKnowTheCodeIsBadYouDontNeedToTellMe = "  ___XP DE KEY"
 
 local oldNc
@@ -468,9 +461,10 @@ task.spawn(function()
     end)
 end)
 
+-- auto sell
 task.spawn(function()
     while true do
-        if getgenv().AutoSell and AutoSell then
+        if parseBool(getgenv().Config.Settings.AutoSell) then
             local canSell = true
             
             if Player and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Money") then
@@ -500,9 +494,10 @@ task.spawn(function()
     end
 end)
 
+-- auto buy
 task.spawn(function()
     while task.wait(0.05) do
-        if getgenv().AutoBuyLuckyArrow and BuyLucky then
+        if parseBool(getgenv().Config.Settings.AutoBuyLuckyArrow) then
             if Player and Player:FindFirstChild("PlayerStats") and Player.PlayerStats:FindFirstChild("Money") then
                 local Money = Player.PlayerStats.Money
                 if Money and Money.Value >= 75000 and not HasLuckyArrows() then
@@ -518,126 +513,106 @@ end)
 
 task.wait(1.5)
 
-local function GetItemsToFarm()
-    local items = {}
+-- main farm loop
+while true do
+    task.wait()
+    
+    local foundItem = false
     
     for ItemModel, ItemData in pairs(getgenv().ItemQueue) do
         local ItemName = ItemData.ItemName
         
-        if getgenv().ItemsToFarm[ItemName] == true then
-            local Priority = ItemPriority[ItemName] or 999
+        if getgenv().Config.ItemsToFarm[ItemName] == true then
+            foundItem = true
+            local HumanoidRootPart = GetCharacter("HumanoidRootPart")
             
-            table.insert(items, {
-                Model = ItemModel,
-                Data = ItemData,
-                Priority = Priority
-            })
-        end
-    end
-    
-    table.sort(items, function(a, b)
-        return a.Priority < b.Priority
-    end)
-    
-    return items
-end
-
-while true do
-    task.wait()
-    
-    local items = GetItemsToFarm()
-    
-    if #items == 0 then
-        ServerHop()
-    end
-    
-    for _, itemEntry in ipairs(items) do
-        local ItemModel = itemEntry.Model
-        local ItemData = itemEntry.Data
-        local HumanoidRootPart = GetCharacter("HumanoidRootPart")
-        
-        if not HumanoidRootPart then
-            break
-        end
-        
-        local ItemName = ItemData.ItemName
-        local ItemPrompt = ItemData.Prompt
-        
-        if not ItemModel or not ItemModel.Parent or ItemModel.Parent ~= workspace.Item_Spawns.Items then
-            getgenv().ItemQueue[ItemModel] = nil
-            continue
-        end
-        
-        if not ItemModel.PrimaryPart then
-            getgenv().ItemQueue[ItemModel] = nil
-            continue
-        end
-        
-        if HasMaxItem(ItemName) then
-            getgenv().ItemQueue[ItemModel] = nil
-            continue
-        end
-        
-        if #getgenv().CachedBodyParts == 0 then
-            for _, Part in GetCharacter():GetDescendants() do
-                if (Part:IsA("BasePart") or Part:IsA("UnionOperation") or Part:IsA("MeshPart")) and Part.CanCollide == true then
-                    table.insert(getgenv().CachedBodyParts, Part)
-                    Part.CanCollide = false
-                end
-            end
-        end
-        
-        local BodyVelocity = Instance.new("BodyVelocity")
-        BodyVelocity.Parent = HumanoidRootPart
-        BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        
-        local StartTime = tick()
-        repeat
-            task.wait()
-            if ItemModel and ItemModel.PrimaryPart and ItemModel.Parent == workspace.Item_Spawns.Items then
-                HumanoidRootPart.CFrame = ItemModel.PrimaryPart.CFrame - Vector3.new(0, 12, 0)
-            else
+            if not HumanoidRootPart then
                 break
             end
-        until tick() - StartTime >= getgenv().ItemCollectionDelay or ItemModel.Parent ~= workspace.Item_Spawns.Items
-        
-        local PickupStart = tick()
-        repeat
-            task.wait()
+            
+            local ItemPrompt = ItemData.Prompt
             
             if not ItemModel or not ItemModel.Parent or ItemModel.Parent ~= workspace.Item_Spawns.Items then
-                break
+                getgenv().ItemQueue[ItemModel] = nil
+                continue
             end
             
-            if ItemModel.PrimaryPart then
-                HumanoidRootPart.CFrame = ItemModel.PrimaryPart.CFrame - Vector3.new(0, 12, 0)
+            if not ItemModel.PrimaryPart then
+                getgenv().ItemQueue[ItemModel] = nil
+                continue
             end
             
-            local ItemPromptCheck
-            for _, Prompt in ItemModel:GetChildren() do
-                if Prompt:IsA("ProximityPrompt") and Prompt.MaxActivationDistance ~= 0 then
-                    ItemPromptCheck = Prompt
+            if HasMaxItem(ItemName) then
+                getgenv().ItemQueue[ItemModel] = nil
+                continue
+            end
+            
+            if #getgenv().CachedBodyParts == 0 then
+                for _, Part in GetCharacter():GetDescendants() do
+                    if (Part:IsA("BasePart") or Part:IsA("UnionOperation") or Part:IsA("MeshPart")) and Part.CanCollide == true then
+                        table.insert(getgenv().CachedBodyParts, Part)
+                        Part.CanCollide = false
+                    end
                 end
             end
             
-            if ItemPromptCheck then
-                fireproximityprompt(ItemPromptCheck)
-            end
-        until not ItemModel or ItemModel.Parent ~= workspace.Item_Spawns.Items or tick() - PickupStart >= 3
-        
-        BodyVelocity:Destroy()
-        
-        TeleportTo(CFrame.new(-69.808, -42.480, -980.470))
-        
-        if #getgenv().CachedBodyParts ~= 0 then
-            for _, Part in getgenv().CachedBodyParts do
-                if Part and Part.Parent then
-                    Part.CanCollide = true
+            local BodyVelocity = Instance.new("BodyVelocity")
+            BodyVelocity.Parent = HumanoidRootPart
+            BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            
+            local StartTime = tick()
+            repeat
+                task.wait()
+                if ItemModel and ItemModel.PrimaryPart and ItemModel.Parent == workspace.Item_Spawns.Items then
+                    HumanoidRootPart.CFrame = ItemModel.PrimaryPart.CFrame - Vector3.new(0, 12, 0)
+                else
+                    break
                 end
+            until tick() - StartTime >= tonumber(getgenv().Config.Settings.ItemCollectionDelay) or ItemModel.Parent ~= workspace.Item_Spawns.Items
+            
+            local PickupStart = tick()
+            repeat
+                task.wait()
+                
+                if not ItemModel or not ItemModel.Parent or ItemModel.Parent ~= workspace.Item_Spawns.Items then
+                    break
+                end
+                
+                if ItemModel.PrimaryPart then
+                    HumanoidRootPart.CFrame = ItemModel.PrimaryPart.CFrame - Vector3.new(0, 12, 0)
+                end
+                
+                local ItemPromptCheck
+                for _, Prompt in ItemModel:GetChildren() do
+                    if Prompt:IsA("ProximityPrompt") and Prompt.MaxActivationDistance ~= 0 then
+                        ItemPromptCheck = Prompt
+                    end
+                end
+                
+                if ItemPromptCheck then
+                    fireproximityprompt(ItemPromptCheck)
+                end
+            until not ItemModel or ItemModel.Parent ~= workspace.Item_Spawns.Items or tick() - PickupStart >= 3
+            
+            BodyVelocity:Destroy()
+            
+            TeleportTo(CFrame.new(-69.808, -42.480, -980.470))
+            
+            if #getgenv().CachedBodyParts ~= 0 then
+                for _, Part in getgenv().CachedBodyParts do
+                    if Part and Part.Parent then
+                        Part.CanCollide = true
+                    end
+                end
+                table.clear(getgenv().CachedBodyParts)
             end
-            table.clear(getgenv().CachedBodyParts)
+            
+            getgenv().ItemQueue[ItemModel] = nil
+            break
         end
-        
-        getgenv().ItemQueue[ItemModel] = nil
+    end
+    
+    if not foundItem then
+        ServerHop()
     end
 end
