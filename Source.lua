@@ -629,6 +629,269 @@ function Library.SendWarning(settings)
         }):Play()
     end)
     
+function Library.SendSettings(settings)
+    local MainGui = CoreGui:FindFirstChild('Zero')
+    if not MainGui then return end
+    
+    local Container = MainGui:FindFirstChild('Container')
+    if not Container then return end
+    
+    local SettingsContainer = Instance.new("Frame")
+    SettingsContainer.Name = "SettingsContainer"
+    SettingsContainer.Size = UDim2.new(1, 0, 1, 0)
+    SettingsContainer.Position = UDim2.new(0, 0, 0, 0)
+    SettingsContainer.BackgroundTransparency = 1
+    SettingsContainer.ZIndex = 1000
+    SettingsContainer.Parent = Container
+    
+    local BlurFrame = Instance.new("Frame")
+    BlurFrame.Name = "BlurFrame"
+    BlurFrame.Size = UDim2.new(1, 0, 1, 0)
+    BlurFrame.Position = UDim2.new(0, 0, 0, 0)
+    BlurFrame.BackgroundColor3 = Color3.fromRGB(12, 13, 15)
+    BlurFrame.BackgroundTransparency = 1
+    BlurFrame.ZIndex = 1001
+    BlurFrame.Parent = SettingsContainer
+    
+    local BlurCorner = Instance.new("UICorner")
+    BlurCorner.CornerRadius = UDim.new(0, 10)
+    BlurCorner.Parent = BlurFrame
+    
+    local SettingsFrame = Instance.new("Frame")
+    SettingsFrame.Name = "SettingsFrame"
+    SettingsFrame.Size = UDim2.new(0, 0, 0, 0)
+    SettingsFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    SettingsFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    SettingsFrame.BackgroundColor3 = Color3.fromRGB(12, 13, 15)
+    SettingsFrame.BackgroundTransparency = 0.05
+    SettingsFrame.BorderSizePixel = 0
+    SettingsFrame.ZIndex = 1002
+    SettingsFrame.Parent = SettingsContainer
+    
+    local SettingsCorner = Instance.new("UICorner")
+    SettingsCorner.CornerRadius = UDim.new(0, 10)
+    SettingsCorner.Parent = SettingsFrame
+    
+    local SettingsStroke = Instance.new("UIStroke")
+    SettingsStroke.Color = Color3.fromRGB(52, 66, 89)
+    SettingsStroke.Transparency = 0.3
+    SettingsStroke.Thickness = 1
+    SettingsStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    SettingsStroke.Parent = SettingsFrame
+    
+    local SettingsIcon = Instance.new("ImageLabel")
+    SettingsIcon.Name = "SettingsIcon"
+    SettingsIcon.Size = UDim2.new(0, 24, 0, 24)
+    SettingsIcon.Position = UDim2.new(0, 20, 0, 20)
+    SettingsIcon.BackgroundTransparency = 1
+    SettingsIcon.Image = "rbxassetid://10709810948"
+    SettingsIcon.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    SettingsIcon.ImageTransparency = 0.2
+    SettingsIcon.ZIndex = 1003
+    SettingsIcon.Parent = SettingsFrame
+    
+    local SettingsTitle = Instance.new("TextLabel")
+    SettingsTitle.Name = "SettingsTitle"
+    SettingsTitle.Size = UDim2.new(1, -60, 0, 24)
+    SettingsTitle.Position = UDim2.new(0, 50, 0, 20)
+    SettingsTitle.BackgroundTransparency = 1
+    SettingsTitle.Text = "GUI Settings"
+    SettingsTitle.TextColor3 = Color3.fromRGB(152, 181, 255)
+    SettingsTitle.TextTransparency = 0.2
+    SettingsTitle.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+    SettingsTitle.TextSize = 13
+    SettingsTitle.TextXAlignment = Enum.TextXAlignment.Left
+    SettingsTitle.TextYAlignment = Enum.TextYAlignment.Center
+    SettingsTitle.ZIndex = 1003
+    SettingsTitle.Parent = SettingsFrame
+    
+    local ScrollFrame = Instance.new("ScrollingFrame")
+    ScrollFrame.Name = "ScrollFrame"
+    ScrollFrame.Size = UDim2.new(1, -40, 0, 120)
+    ScrollFrame.Position = UDim2.new(0, 20, 0, 50)
+    ScrollFrame.BackgroundTransparency = 1
+    ScrollFrame.BorderSizePixel = 0
+    ScrollFrame.ScrollBarThickness = 4
+    ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(152, 181, 255)
+    ScrollFrame.ScrollBarImageTransparency = 0.5
+    ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    ScrollFrame.ZIndex = 1003
+    ScrollFrame.Parent = SettingsFrame
+    
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.Padding = UDim.new(0, 8)
+    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ListLayout.Parent = ScrollFrame
+    
+    local function createSettingItem(title, description, settingType, currentValue, callback)
+        local ItemFrame = Instance.new("Frame")
+        ItemFrame.Size = UDim2.new(1, 0, 0, 35)
+        ItemFrame.BackgroundTransparency = 1
+        ItemFrame.ZIndex = 1003
+        ItemFrame.Parent = ScrollFrame
+        
+        local ItemTitle = Instance.new("TextLabel")
+        ItemTitle.Size = UDim2.new(0.6, 0, 0, 16)
+        ItemTitle.Position = UDim2.new(0, 0, 0, 0)
+        ItemTitle.BackgroundTransparency = 1
+        ItemTitle.Text = title
+        ItemTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ItemTitle.TextTransparency = 0.2
+        ItemTitle.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+        ItemTitle.TextSize = 11
+        ItemTitle.TextXAlignment = Enum.TextXAlignment.Left
+        ItemTitle.ZIndex = 1003
+        ItemTitle.Parent = ItemFrame
+        
+        local ItemDesc = Instance.new("TextLabel")
+        ItemDesc.Size = UDim2.new(0.6, 0, 0, 12)
+        ItemDesc.Position = UDim2.new(0, 0, 0, 18)
+        ItemDesc.BackgroundTransparency = 1
+        ItemDesc.Text = description
+        ItemDesc.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ItemDesc.TextTransparency = 0.6
+        ItemDesc.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+        ItemDesc.TextSize = 9
+        ItemDesc.TextXAlignment = Enum.TextXAlignment.Left
+        ItemDesc.ZIndex = 1003
+        ItemDesc.Parent = ItemFrame
+        
+        if settingType == "toggle" then
+            local Toggle = Instance.new("Frame")
+            Toggle.Size = UDim2.new(0, 30, 0, 16)
+            Toggle.Position = UDim2.new(1, -35, 0.5, -8)
+            Toggle.BackgroundColor3 = currentValue and Color3.fromRGB(152, 181, 255) or Color3.fromRGB(32, 38, 51)
+            Toggle.BorderSizePixel = 0
+            Toggle.ZIndex = 1003
+            Toggle.Parent = ItemFrame
+            
+            local ToggleCorner = Instance.new("UICorner")
+            ToggleCorner.CornerRadius = UDim.new(1, 0)
+            ToggleCorner.Parent = Toggle
+            
+            local Circle = Instance.new("Frame")
+            Circle.Size = UDim2.new(0, 14, 0, 14)
+            Circle.Position = currentValue and UDim2.new(1, -15, 0.5, -7) or UDim2.new(0, 1, 0.5, -7)
+            Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            Circle.BorderSizePixel = 0
+            Circle.ZIndex = 1004
+            Circle.Parent = Toggle
+            
+            local CircleCorner = Instance.new("UICorner")
+            CircleCorner.CornerRadius = UDim.new(1, 0)
+            CircleCorner.Parent = Circle
+            
+            local Button = Instance.new("TextButton")
+            Button.Size = UDim2.new(1, 0, 1, 0)
+            Button.BackgroundTransparency = 1
+            Button.Text = ""
+            Button.ZIndex = 1005
+            Button.Parent = Toggle
+            
+            Button.MouseButton1Click:Connect(function()
+                currentValue = not currentValue
+                
+                TweenService:Create(Toggle, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = currentValue and Color3.fromRGB(152, 181, 255) or Color3.fromRGB(32, 38, 51)
+                }):Play()
+                
+                TweenService:Create(Circle, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Position = currentValue and UDim2.new(1, -15, 0.5, -7) or UDim2.new(0, 1, 0.5, -7)
+                }):Play()
+                
+                callback(currentValue)
+            end)
+        end
+        
+        return ItemFrame
+    end
+    
+    createSettingItem("Acrylic Blur", "Enable/disable background blur effect", "toggle", true, function(value)
+        print("Acrylic Blur:", value)
+    end)
+    
+    createSettingItem("Auto Scale", "Automatically scale UI for different screen sizes", "toggle", true, function(value)
+        print("Auto Scale:", value)
+    end)
+    
+    createSettingItem("Smooth Animations", "Enable smooth transition animations", "toggle", true, function(value)
+        print("Smooth Animations:", value)
+    end)
+    
+    createSettingItem("Save Position", "Remember GUI position between sessions", "toggle", false, function(value)
+        print("Save Position:", value)
+    end)
+    
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "CloseButton"
+    CloseButton.Size = UDim2.new(0, 80, 0, 25)
+    CloseButton.Position = UDim2.new(1, -100, 1, -40)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+    CloseButton.BackgroundTransparency = 0.1
+    CloseButton.BorderSizePixel = 0
+    CloseButton.Text = "Close"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextTransparency = 0.2
+    CloseButton.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+    CloseButton.TextSize = 11
+    CloseButton.ZIndex = 1003
+    CloseButton.Parent = SettingsFrame
+    
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 4)
+    CloseCorner.Parent = CloseButton
+    
+    local CloseStroke = Instance.new("UIStroke")
+    CloseStroke.Color = Color3.fromRGB(52, 66, 89)
+    CloseStroke.Transparency = 0.5
+    CloseStroke.Thickness = 1
+    CloseStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    CloseStroke.Parent = CloseButton
+    
+    local fadeInTween = TweenService:Create(BlurFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0.2
+    })
+    
+    local openTween = TweenService:Create(SettingsFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 400, 0, 220)
+    })
+    
+    fadeInTween:Play()
+    openTween:Play()
+    
+    local function closeSettings()
+        local closeTween = TweenService:Create(SettingsFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Size = UDim2.new(0, 0, 0, 0)
+        })
+        
+        local fadeOutTween = TweenService:Create(BlurFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+            BackgroundTransparency = 1
+        })
+        
+        closeTween:Play()
+        fadeOutTween:Play()
+        
+        closeTween.Completed:Connect(function()
+            SettingsContainer:Destroy()
+        end)
+        
+        if settings and settings.callback then
+            settings.callback()
+        end
+    end
+    
+    CloseButton.MouseButton1Click:Connect(closeSettings)
+    BlurFrame.MouseButton1Click:Connect(closeSettings)
+    
+    CloseButton.MouseEnter:Connect(function()
+        TweenService:Create(CloseButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            BackgroundColor3 = Color3.fromRGB(42, 50, 66)
+        }):Play()
+        TweenService:Create(CloseStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Transparency = 0.3
+        }):Play()
+    end)
+    
     CloseButton.MouseLeave:Connect(function()
         TweenService:Create(CloseButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
             BackgroundColor3 = Color3.fromRGB(32, 38, 51)
@@ -849,6 +1112,39 @@ function Library:create_ui()
     Minimize.TextSize = 14
     Minimize.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     Minimize.Parent = Handler
+    
+    local SettingsButton = Instance.new('TextButton')
+    SettingsButton.Name = 'SettingsButton'
+    SettingsButton.Size = UDim2.new(0, 20, 0, 20)
+    SettingsButton.Position = UDim2.new(0, 15, 1, -35)
+    SettingsButton.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+    SettingsButton.BackgroundTransparency = 0.3
+    SettingsButton.BorderSizePixel = 0
+    SettingsButton.Text = ''
+    SettingsButton.AutoButtonColor = false
+    SettingsButton.Parent = Handler
+    
+    local SettingsCorner = Instance.new('UICorner')
+    SettingsCorner.CornerRadius = UDim.new(0, 6)
+    SettingsCorner.Parent = SettingsButton
+    
+    local SettingsStroke = Instance.new('UIStroke')
+    SettingsStroke.Color = Color3.fromRGB(152, 181, 255)
+    SettingsStroke.Transparency = 0.6
+    SettingsStroke.Thickness = 1
+    SettingsStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    SettingsStroke.Parent = SettingsButton
+    
+    local SettingsIcon = Instance.new('ImageLabel')
+    SettingsIcon.Name = 'SettingsIcon'
+    SettingsIcon.Size = UDim2.new(0, 12, 0, 12)
+    SettingsIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+    SettingsIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    SettingsIcon.BackgroundTransparency = 1
+    SettingsIcon.Image = 'rbxassetid://10709810948'
+    SettingsIcon.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    SettingsIcon.ImageTransparency = 0.4
+    SettingsIcon.Parent = SettingsButton
     
     local UIScale = Instance.new('UIScale')
     UIScale.Parent = Container    
@@ -2958,6 +3254,38 @@ function Library:create_ui()
     self._ui.Container.Handler.Minimize.MouseButton1Click:Connect(function()
         self._ui_open = not self._ui_open
         self:change_visiblity(self._ui_open)
+    end)
+    
+    SettingsButton.MouseEnter:Connect(function()
+        TweenService:Create(SettingsButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.1,
+            Size = UDim2.new(0, 22, 0, 22)
+        }):Play()
+        TweenService:Create(SettingsStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Transparency = 0.3
+        }):Play()
+        TweenService:Create(SettingsIcon, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            ImageTransparency = 0.2,
+            Size = UDim2.new(0, 14, 0, 14)
+        }):Play()
+    end)
+    
+    SettingsButton.MouseLeave:Connect(function()
+        TweenService:Create(SettingsButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.3,
+            Size = UDim2.new(0, 20, 0, 20)
+        }):Play()
+        TweenService:Create(SettingsStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Transparency = 0.6
+        }):Play()
+        TweenService:Create(SettingsIcon, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            ImageTransparency = 0.4,
+            Size = UDim2.new(0, 12, 0, 12)
+        }):Play()
+    end)
+    
+    SettingsButton.MouseButton1Click:Connect(function()
+        Library.SendSettings()
     end)
 
     return self
