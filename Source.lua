@@ -471,29 +471,36 @@ function Library.SendWarning(settings)
     local MainGui = CoreGui:FindFirstChild('Zero')
     if not MainGui then return end
     
+    local Container = MainGui:FindFirstChild('Container')
+    if not Container then return end
+    
     local WarningContainer = Instance.new("Frame")
     WarningContainer.Name = "WarningContainer"
     WarningContainer.Size = UDim2.new(1, 0, 1, 0)
     WarningContainer.Position = UDim2.new(0, 0, 0, 0)
     WarningContainer.BackgroundTransparency = 1
     WarningContainer.ZIndex = 1000
-    WarningContainer.Parent = MainGui
+    WarningContainer.Parent = Container
     
     local BlurFrame = Instance.new("Frame")
     BlurFrame.Name = "BlurFrame"
     BlurFrame.Size = UDim2.new(1, 0, 1, 0)
     BlurFrame.Position = UDim2.new(0, 0, 0, 0)
-    BlurFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    BlurFrame.BackgroundColor3 = Color3.fromRGB(12, 13, 15)
     BlurFrame.BackgroundTransparency = 1
     BlurFrame.ZIndex = 1001
     BlurFrame.Parent = WarningContainer
+    
+    local BlurCorner = Instance.new("UICorner")
+    BlurCorner.CornerRadius = UDim.new(0, 10)
+    BlurCorner.Parent = BlurFrame
     
     local WarningFrame = Instance.new("Frame")
     WarningFrame.Name = "WarningFrame"
     WarningFrame.Size = UDim2.new(0, 0, 0, 0)
     WarningFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     WarningFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    WarningFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
+    WarningFrame.BackgroundColor3 = Color3.fromRGB(12, 13, 15)
     WarningFrame.BackgroundTransparency = 0.05
     WarningFrame.BorderSizePixel = 0
     WarningFrame.ZIndex = 1002
@@ -504,32 +511,33 @@ function Library.SendWarning(settings)
     WarningCorner.Parent = WarningFrame
     
     local WarningStroke = Instance.new("UIStroke")
-    WarningStroke.Color = Color3.fromRGB(255, 100, 100)
+    WarningStroke.Color = Color3.fromRGB(52, 66, 89)
     WarningStroke.Transparency = 0.3
-    WarningStroke.Thickness = 2
+    WarningStroke.Thickness = 1
     WarningStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     WarningStroke.Parent = WarningFrame
     
     local WarningIcon = Instance.new("ImageLabel")
     WarningIcon.Name = "WarningIcon"
-    WarningIcon.Size = UDim2.new(0, 32, 0, 32)
+    WarningIcon.Size = UDim2.new(0, 24, 0, 24)
     WarningIcon.Position = UDim2.new(0, 20, 0, 20)
     WarningIcon.BackgroundTransparency = 1
     WarningIcon.Image = "rbxassetid://6031094678"
-    WarningIcon.ImageColor3 = Color3.fromRGB(255, 100, 100)
+    WarningIcon.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    WarningIcon.ImageTransparency = 0.2
     WarningIcon.ZIndex = 1003
     WarningIcon.Parent = WarningFrame
     
     local WarningTitle = Instance.new("TextLabel")
     WarningTitle.Name = "WarningTitle"
-    WarningTitle.Size = UDim2.new(1, -70, 0, 32)
-    WarningTitle.Position = UDim2.new(0, 60, 0, 20)
+    WarningTitle.Size = UDim2.new(1, -60, 0, 24)
+    WarningTitle.Position = UDim2.new(0, 50, 0, 20)
     WarningTitle.BackgroundTransparency = 1
     WarningTitle.Text = settings.title or "Warning"
-    WarningTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    WarningTitle.TextColor3 = Color3.fromRGB(152, 181, 255)
     WarningTitle.TextTransparency = 0.2
-    WarningTitle.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Bold, Enum.FontStyle.Normal)
-    WarningTitle.TextSize = 16
+    WarningTitle.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+    WarningTitle.TextSize = 13
     WarningTitle.TextXAlignment = Enum.TextXAlignment.Left
     WarningTitle.TextYAlignment = Enum.TextYAlignment.Center
     WarningTitle.ZIndex = 1003
@@ -537,14 +545,14 @@ function Library.SendWarning(settings)
     
     local WarningText = Instance.new("TextLabel")
     WarningText.Name = "WarningText"
-    WarningText.Size = UDim2.new(1, -40, 0, 100)
-    WarningText.Position = UDim2.new(0, 20, 0, 60)
+    WarningText.Size = UDim2.new(1, -40, 0, 80)
+    WarningText.Position = UDim2.new(0, 20, 0, 50)
     WarningText.BackgroundTransparency = 1
     WarningText.Text = settings.text or "This is a warning message."
-    WarningText.TextColor3 = Color3.fromRGB(200, 200, 200)
-    WarningText.TextTransparency = 0.3
+    WarningText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    WarningText.TextTransparency = 0.7
     WarningText.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-    WarningText.TextSize = 12
+    WarningText.TextSize = 10
     WarningText.TextXAlignment = Enum.TextXAlignment.Left
     WarningText.TextYAlignment = Enum.TextYAlignment.Top
     WarningText.TextWrapped = true
@@ -553,28 +561,36 @@ function Library.SendWarning(settings)
     
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
-    CloseButton.Size = UDim2.new(0, 100, 0, 30)
-    CloseButton.Position = UDim2.new(1, -120, 1, -50)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    CloseButton.Size = UDim2.new(0, 80, 0, 25)
+    CloseButton.Position = UDim2.new(1, -100, 1, -40)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
     CloseButton.BackgroundTransparency = 0.1
     CloseButton.BorderSizePixel = 0
     CloseButton.Text = "OK"
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextTransparency = 0.2
     CloseButton.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
-    CloseButton.TextSize = 12
+    CloseButton.TextSize = 11
     CloseButton.ZIndex = 1003
     CloseButton.Parent = WarningFrame
     
     local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(0, 5)
+    CloseCorner.CornerRadius = UDim.new(0, 4)
     CloseCorner.Parent = CloseButton
     
+    local CloseStroke = Instance.new("UIStroke")
+    CloseStroke.Color = Color3.fromRGB(52, 66, 89)
+    CloseStroke.Transparency = 0.5
+    CloseStroke.Thickness = 1
+    CloseStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    CloseStroke.Parent = CloseButton
+    
     local fadeInTween = TweenService:Create(BlurFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-        BackgroundTransparency = 0.3
+        BackgroundTransparency = 0.2
     })
     
     local openTween = TweenService:Create(WarningFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 400, 0, 200)
+        Size = UDim2.new(0, 350, 0, 160)
     })
     
     fadeInTween:Play()
@@ -606,13 +622,19 @@ function Library.SendWarning(settings)
     
     CloseButton.MouseEnter:Connect(function()
         TweenService:Create(CloseButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(172, 201, 255)
+            BackgroundColor3 = Color3.fromRGB(42, 50, 66)
+        }):Play()
+        TweenService:Create(CloseStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Transparency = 0.3
         }):Play()
     end)
     
     CloseButton.MouseLeave:Connect(function()
         TweenService:Create(CloseButton, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+            BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+        }):Play()
+        TweenService:Create(CloseStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Transparency = 0.5
         }):Play()
     end)
 end
@@ -1987,10 +2009,10 @@ function Library:create_ui()
                 
                 local Shadow = Instance.new("Frame")
                 Shadow.Name = "Shadow"
-                Shadow.Size = UDim2.new(1, 4, 1, 4)
-                Shadow.Position = UDim2.new(0, -2, 0, 2)
+                Shadow.Size = UDim2.new(1, 2, 1, 2)
+                Shadow.Position = UDim2.new(0, 1, 0, 1)
                 Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-                Shadow.BackgroundTransparency = 0.8
+                Shadow.BackgroundTransparency = 0.9
                 Shadow.BorderSizePixel = 0
                 Shadow.ZIndex = Button.ZIndex - 1
                 Shadow.Parent = Button
@@ -2008,7 +2030,7 @@ function Library:create_ui()
                         Transparency = 0.3
                     }):Play()
                     TweenService:Create(Shadow, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                        BackgroundTransparency = 0.6
+                        BackgroundTransparency = 0.85
                     }):Play()
                 end)
             
@@ -2021,7 +2043,7 @@ function Library:create_ui()
                         Transparency = 0.5
                     }):Play()
                     TweenService:Create(Shadow, TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                        BackgroundTransparency = 0.8
+                        BackgroundTransparency = 0.9
                     }):Play()
                 end)
                 
@@ -2433,6 +2455,7 @@ function Library:create_ui()
                 CurrentOption.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
                 CurrentOption.TextColor3 = Color3.fromRGB(255, 255, 255)
                 CurrentOption.TextTransparency = 0.20000000298023224
+                CurrentOption.Text = settings.default or "Select..."
                 CurrentOption.Name = 'CurrentOption'
                 CurrentOption.Size = UDim2.new(0, 161, 0, 13)
                 CurrentOption.AnchorPoint = Vector2.new(0, 0.5)
