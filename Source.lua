@@ -466,7 +466,6 @@ function Library.SendNotification(settings)
         end)
     end)
 end
-end
 
 function Library.SendWarning(settings)
     local MainGui = CoreGui:FindFirstChild('Zero')
