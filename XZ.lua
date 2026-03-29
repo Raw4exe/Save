@@ -14,18 +14,15 @@ Assist = {
 Library.__index = Library
 setmetatable(Assist, Assist)
 
---// Prerun
 if game.CoreGui:FindFirstChild("XenonV3Lib") then
     game.CoreGui:FindFirstChild("XenonV3Lib"):Destroy()
 end
 
---// Services
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
---// Alliases 
 local u2 = UDim2.new
 local v3 = Vector3.new
 local pi = math.pi
@@ -91,22 +88,8 @@ function Library.CreateLib(...)
             ["Debounce"] = false;
         };
     });
-    
     LibTable.UI.Parent = game.CoreGui
-    
-    -- ИЗМЕНЕНО: Позиционирование сверху по центру для симметрии
-    LibTable.UI.Main.AnchorPoint = Vector2.new(0.5, 0)
-    LibTable.UI.Main.Position = UDim2.new(0.5, 0, 0, 20)
     LibTable.UI.Main.Visible = false
-    
-    -- ИЗМЕНЕНО: TabHolder перемещен вверх для симметричного вида
-    LibTable.UI.TabHolder.AnchorPoint = Vector2.new(0.5, 1)
-    LibTable.UI.TabHolder.Position = UDim2.new(0.5, 0, 0, 0)
-    LibTable.UI.TabHolder.Visible = false
-    
-    -- ИЗМЕНЕНО: Удалена установка статуса
-    -- LibTable.UI.Main.TabHolder.Status.Label.Text = ""
-    
     LibTable.Toggle = function()
         LibTable.State = not LibTable.State
         LibTable.UI.Main.Visible = not LibTable.UI.Main.Visible
@@ -127,12 +110,9 @@ function Library.CreateLib(...)
             v.Visible = true             
         end
     end
-    
-    -- ИЗМЕНЕНО: Удалена установка имени в топбар (Xenon V3)
     LibTable.SetName = function(Name)
-        -- Пусто - больше не отображает название
+        LibTable.UI.Main.TopBar.Tab.Text = Name
     end
-    
     LibTable.Ripple = function(asset, x, y)
         assert(x and y, "Please provide x and y coordinates!")
         coroutine.resume(coroutine.create(function()
@@ -152,12 +132,11 @@ function Library.CreateLib(...)
              New_Ripple:Destroy()
         end))
     end
-    
     LibTable.InitDrag = function()
         local dragging, dragInput, dragStart, startPos
         local function update(input)
             local delta = input.Position - dragStart
-            TweenService:Create(LibTable.UI.Main, TweenInfo.new(0.1), {Position = UDim2.new(0.5, startPos.X.Offset + delta.X, 0, startPos.Y.Offset + delta.Y)}):Play()
+            TweenService:Create(LibTable.UI.Main, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
         end
         LibTable.UI.Main.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -188,9 +167,10 @@ function Library.CreateLib(...)
             end
         end)
     end
-
     UserInputService.InputBegan:Connect(function(Key, IsTyping)
-        if IsTyping then return end
+        if IsTyping then
+            return
+        end
         if Key.KeyCode == LibTable.ToggleKey then
             LibTable.Toggle()
         end
@@ -198,7 +178,6 @@ function Library.CreateLib(...)
             LibTable.ToggleBottom()
         end
     end)
-    
     LibTable.UI.Main.Info.Close.MouseButton1Down:Connect(function()
         Assist({
             ["Name"] = "Tween";
@@ -209,7 +188,6 @@ function Library.CreateLib(...)
             }
         })
     end)
-    
     LibTable.InitDrag()
     return setmetatable(LibTable, Library)
 end
@@ -227,25 +205,20 @@ function Library:Tab(Name, Icon)
             ["Self"] = self;
        }
     });
-    
     TabTable.Update = function()
         TabTable.Tab.TabImage.Image = (Icon ~= nil and TabTable.Icon) or TabTable.Tab.TabImage.Image
-        -- ИЗМЕНЕНО: Удален текст под иконкой таба
-        -- TabTable.Tab.Hide.TabName.TextLabel.Text = ""
+        TabTable.Tab.Hide.TabName.TextLabel.Text = TabTable.Name
         TabTable.Tab.Visible = true
     end
-    
     TabTable.CancelTweens = function()
         for i, tween in pairs(TabTable.Tweens) do
             tween:Cancel()
             table.remove(TabTable.Tweens, i)
         end
     end
-
     self.Tabs[#self.Tabs+1] = TabTable
     TabTable.Tab.Parent = self.UI.TabHolder:WaitForChild("Holder")
     TabTable.Update()
-
     TabTable.Tab.MouseEnter:Connect(function()
         TabTable.CancelTweens()
         local TextTween = TabTable.Tab.Hide.TabName
@@ -253,7 +226,6 @@ function Library:Tab(Name, Icon)
         Tween:Play()
         table.insert(TabTable.Tweens, Tween)
     end)
-
     TabTable.Tab.MouseLeave:Connect(function()
         TabTable.CancelTweens()
         local TextTween = TabTable.Tab.Hide.TabName
@@ -261,16 +233,14 @@ function Library:Tab(Name, Icon)
         Tween:Play()
         table.insert(TabTable.Tweens, Tween)
     end)
-
     TabTable.Tab.MouseButton1Down:Connect(function()
         self.Hide_All()
         self.Show(TabTable.Sections)
-        -- self.SetName(TabTable.Name) -- Удалено
+        self.SetName(TabTable.Name)
         if self.State == false then
             self.Toggle()
         end
     end)
-
     return setmetatable(TabTable, Library)
 end
 
@@ -288,7 +258,6 @@ function Library:Section(Name)
             ["Self"] = self["Self"];
         };
     });
-
     SectionTable.Update = function()
         SectionTable.Section.TopBar.Label.Text = SectionTable.Name
     end
@@ -302,27 +271,82 @@ function Library:Section(Name)
         SectionTable.State = false;
         SectionTable.Debounce = true;
         SectionTable.CancelTweens()
-        local Tween4 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.TopBar.Toggle, {Rotation = 0}, 0.2}})
+        local Tween4 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.TopBar.Toggle,
+                {Rotation = 0},
+                0.2
+            }
+        })
         local Tween = game:GetService("TweenService"):Create(SectionTable.Section, TweenInfo.new(0.3), {Size = u2(0, 393, 0, 36)})
         Tween:Play()
-        local Tween1 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.UICorner, {CornerRadius = UDim.new(0.2, 0)}, 0.6}})
-        local Tween2 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.TopBar.UICorner, {CornerRadius = UDim.new(0.25, 0)}, 0.6}})
-        local Tween3 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.TopBar.BottomCover.UICorner, {CornerRadius = UDim.new(0.5, 0)}, 0.6}})
+        local Tween1 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.UICorner,
+                {CornerRadius = UDim.new(0.2, 0)},
+                0.6
+            }
+        })
+        local Tween2 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.TopBar.UICorner,
+                {CornerRadius = UDim.new(0.25, 0)},
+                0.6
+            }
+        })
+        local Tween3 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.TopBar.BottomCover.UICorner,
+                {CornerRadius = UDim.new(0.5, 0)},
+                0.6
+            }
+        })
         SectionTable.Section.TopBar.DropShadow.Visible = false
         table.insert(SectionTable.Tweens, Tween) table.insert(SectionTable.Tweens, Tween1) table.insert(SectionTable.Tweens, Tween2) table.insert(SectionTable.Tweens, Tween3) table.insert(SectionTable.Tweens, Tween4)
         Tween.Completed:Wait()
         task.wait(0.1)
         SectionTable.Debounce = false;
     end
-
     SectionTable.Out = function()
         SectionTable.State = true;
         SectionTable.Debounce = true;
         SectionTable.CancelTweens()
-        local Tween1 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.UICorner, {CornerRadius = UDim.new(0.025, 0)}, 0.1}})
-        local Tween2 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.TopBar.UICorner, {CornerRadius = UDim.new(0.25, 0)}, 0.1}})
-        local Tween3 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.TopBar.Toggle, {Rotation = 180}, 0.2}})
-        local Tween4 = Assist({["Name"] = "Tween"; ["Arguments"] = {SectionTable.Section.TopBar.BottomCover.UICorner, {CornerRadius = UDim.new(0, 0)}, 0.1}})
+        local Tween1 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.UICorner,
+                {CornerRadius = UDim.new(0.025, 0)},
+                0.1
+            }
+        })
+        local Tween2 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.TopBar.UICorner,
+                {CornerRadius = UDim.new(0.25, 0)},
+                0.1,
+            }
+        })
+        local Tween3 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.TopBar.Toggle,
+                {Rotation = 180},
+                0.2
+            }
+        })
+        local Tween4 = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SectionTable.Section.TopBar.BottomCover.UICorner,
+                {CornerRadius = UDim.new(0, 0)},
+                0.1
+            }
+        })
         SectionTable.Section.TopBar.DropShadow.Visible = true
         local Tween = game:GetService("TweenService"):Create(SectionTable.Section, TweenInfo.new(0.3), {Size = u2(0, 393, 0, SectionTable.Section.Holder.UIListLayout.AbsoluteContentSize.Y + 60)})
         Tween:Play()
@@ -375,25 +399,66 @@ function Library:Button(Name, Callback, Description)
     ButtonTable.Update()
     ButtonTable.Asset.MouseButton1Down:Connect(function(X, Y)
         pcall(ButtonTable.Callback)
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {ButtonTable.Asset.UIStroke, {Color = Color3.fromRGB(84, 111, 126)}, 0.1, true}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                ButtonTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(84, 111, 126)},
+                0.1,
+                true
+            }
+        })
         if ButtonTable.Asset.UIStroke.Color == Color3.fromRGB(84, 111, 126) then
-            local Tween2 = Assist({["Name"] = "Tween"; ["Arguments"] = {ButtonTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1, false}})
+            local Tween2 = Assist({
+                ["Name"] = "Tween";
+                ["Arguments"] = {
+                    ButtonTable.Asset.UIStroke,
+                    {Color = Color3.fromRGB(65, 86, 97)},
+                    0.1,
+                    false
+                }
+            })
         end
     end)
     ButtonTable.Asset.Info.MouseButton1Down:Connect(function(X, Y)
-        Assist({["Name"] = "Tween"; ["Arguments"] = {self["Self"].UI.Main.Info; {Position = u2(0.5, 0, 0.91, 0)}; 0.3;}})
+        Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                self["Self"].UI.Main.Info;
+                {Position = u2(0.5, 0, 0.91, 0)};
+                0.3;
+            }
+        })
         self["Self"].UI.Main.Info.Label.Text = ButtonTable.Description
     end)
     ButtonTable.Asset.MouseEnter:Connect(function()
-        for i,v in pairs(ButtonTable.Tweens) do v:Cancel() end
+        for i,v in pairs(ButtonTable.Tweens) do
+            v:Cancel()
+        end
         ButtonTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {ButtonTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                ButtonTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(65, 86, 97)},
+                0.1
+            }
+        })
         table.insert(ButtonTable.Tweens, Tween)
     end)
     ButtonTable.Asset.MouseLeave:Connect(function()
-        for i,v in pairs(ButtonTable.Tweens) do v:Cancel() end
+        for i,v in pairs(ButtonTable.Tweens) do
+            v:Cancel()
+        end
         ButtonTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {ButtonTable.Asset.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                ButtonTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(44, 58, 66)},
+                0.1
+            }
+        })
         table.insert(ButtonTable.Tweens, Tween)
     end)
     return setmetatable(ButtonTable, Library)
@@ -419,16 +484,74 @@ function Library:Toggle(Name, StartingState, Callback, Description, RunOnStart)
         ToggleTable.Debounce = true
         task.spawn(function()
             if ToggleTable.State == true then
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer.Inner, {Position = u2(0.735, 0, 0.5, 0)}, 0.3}})
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer, {BackgroundColor3 = Color3.fromRGB(44, 58, 66)}, 0.3}})
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer.UIStroke, {Color = Color3.fromRGB(67, 88, 100)}, 0.3}})
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer.Inner, {ImageColor3 = Color3.fromRGB(67, 88, 100)}, 0.3, true}})
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer.Inner,
+                        {Position = u2(0.735, 0, 0.5, 0)},
+                        0.3
+                    }
+                })
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer,
+                        {BackgroundColor3 = Color3.fromRGB(44, 58, 66)},
+                        0.3
+                    }
+                })
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer.UIStroke,
+                        {Color = Color3.fromRGB(67, 88, 100)},
+                        0.3
+                    }
+                })
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer.Inner,
+                        {ImageColor3 = Color3.fromRGB(67, 88, 100)},
+                        0.3,
+                        true
+                    }
+                })
                 ToggleTable.Debounce = false
             else
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer.Inner, {Position = u2(0.265, 0, 0.5, 0)}, 0.3}})
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer, {BackgroundColor3 = Color3.fromRGB(28, 37, 42)}, 0.3}})
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.3}})
-                Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.Outer.Inner, {ImageColor3 = Color3.fromRGB(44, 58, 66)}, 0.3, true}})
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer.Inner,
+                        {Position = u2(0.265, 0, 0.5, 0)},
+                        0.3
+                    }
+                })
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer,
+                        {BackgroundColor3 = Color3.fromRGB(28, 37, 42)},
+                        0.3
+                    }
+                })
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer.UIStroke,
+                        {Color = Color3.fromRGB(44, 58, 66)},
+                        0.3
+                    }
+                })
+                Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        ToggleTable.Asset.Outer.Inner,
+                        {ImageColor3 = Color3.fromRGB(44, 58, 66)},
+                        0.3,
+                        true
+                    }
+                })
                 ToggleTable.Debounce = false
             end
         end)
@@ -441,26 +564,67 @@ function Library:Toggle(Name, StartingState, Callback, Description, RunOnStart)
         if ToggleTable.Debounce == true then return end
         ToggleTable.State = not ToggleTable.State
         ToggleTable.Update()
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.UIStroke, {Color = Color3.fromRGB(84, 111, 126)}, 0.1, true}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                ToggleTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(84, 111, 126)},
+                0.1,
+                true
+            }
+        })
         if ToggleTable.Asset.UIStroke.Color == Color3.fromRGB(84, 111, 126) then
-            local Tween2 = Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1, false}})
+            local Tween2 = Assist({
+                ["Name"] = "Tween";
+                ["Arguments"] = {
+                    ToggleTable.Asset.UIStroke,
+                    {Color = Color3.fromRGB(65, 86, 97)},
+                    0.1,
+                    false
+                }
+            })
         end
         pcall(ToggleTable.Callback, ToggleTable.State)
     end)
     ToggleTable.Asset.Info.MouseButton1Down:Connect(function(X, Y)
-        Assist({["Name"] = "Tween"; ["Arguments"] = {self["Self"].UI.Main.Info; {Position = u2(0.5, 0, 0.91, 0)}; 0.3;}})
+        Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                self["Self"].UI.Main.Info;
+                {Position = u2(0.5, 0, 0.91, 0)};
+                0.3;
+            }
+        })
         self["Self"].UI.Main.Info.Label.Text = ToggleTable.Description
     end)
     ToggleTable.Asset.MouseEnter:Connect(function()
-        for i,v in pairs(ToggleTable.Tweens) do v:Cancel() end
+        for i,v in pairs(ToggleTable.Tweens) do
+            v:Cancel()
+        end
         ToggleTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                ToggleTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(65, 86, 97)},
+                0.1
+            }
+        })
         table.insert(ToggleTable.Tweens, Tween)
     end)
     ToggleTable.Asset.MouseLeave:Connect(function()
-        for i,v in pairs(ToggleTable.Tweens) do v:Cancel() end
+        for i,v in pairs(ToggleTable.Tweens) do
+            v:Cancel()
+        end
         ToggleTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {ToggleTable.Asset.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                ToggleTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(44, 58, 66)},
+                0.1
+            }
+        })
         table.insert(ToggleTable.Tweens, Tween)
     end)
     if ToggleTable.State == true and RunOnStart then
@@ -482,13 +646,17 @@ function Library:Dropdown(Name, List, Callback, Description)
             ["Debounce"] = false;
             ["Description"] = Description or "The developer has not provided a description for this asset.";
             ["Asset"] = Assist({["Name"] = "GetAsset", ["Arguments"] = {"Dropdown"}}):Clone();
-            ["Other"] = {ExtensionSize = 0};
+            ["Other"] = {
+                ExtensionSize = 0
+            };
         };
     })
     DropdownTable.Update = function(...)
         DropdownTable.Asset.Label.Text = DropdownTable.Name
         for _, v in pairs(DropdownTable.Asset.Holder.ScrollingFrame:GetChildren()) do
-            if v:IsA("TextButton") then v:Destroy() end
+            if v:IsA("TextButton") then
+                v:Destroy()
+            end
         end
         DropdownTable.Asset.Holder.ScrollingFrame.UIListLayout.Padding = UDim.new(0, 7)
         DropdownTable.Asset.Holder.ScrollingFrame.Position = u2(0.5,0,0.5,0)
@@ -512,15 +680,33 @@ function Library:Dropdown(Name, List, Callback, Description)
                 end
             end)
             New_Template.MouseEnter:Connect(function()
-                for i,v in pairs(Tweens) do v:Cancel() end
+                for i,v in pairs(Tweens) do
+                    v:Cancel()
+                end
                 Tweens = {}
-                local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {New_Template.UIStroke, {Color = Color3.fromRGB(76, 101, 113)}, 0.1}})
+                local Tween = Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        New_Template.UIStroke,
+                        {Color = Color3.fromRGB(76, 101, 113)},
+                        0.1
+                    }
+                })
                 table.insert(Tweens, Tween)
             end)
             New_Template.MouseLeave:Connect(function()
-                for i,v in pairs(Tweens) do v:Cancel() end
+                for i,v in pairs(Tweens) do
+                    v:Cancel()
+                end
                 Tweens = {}
-                local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {New_Template.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+                local Tween = Assist({
+                    ["Name"] = "Tween";
+                    ["Arguments"] = {
+                        New_Template.UIStroke,
+                        {Color = Color3.fromRGB(65, 86, 97)},
+                        0.1
+                    }
+                })
                 table.insert(Tweens, Tween)
             end)
         end
@@ -576,19 +762,44 @@ function Library:Dropdown(Name, List, Callback, Description)
         end
     end)
     DropdownTable.Asset.Info.MouseButton1Down:Connect(function(X, Y)
-        Assist({["Name"] = "Tween"; ["Arguments"] = {self["Self"].UI.Main.Info; {Position = u2(0.5, 0, 0.91, 0)}; 0.3;}})
+        Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                self["Self"].UI.Main.Info;
+                {Position = u2(0.5, 0, 0.91, 0)};
+                0.3;
+            }
+        })
         self["Self"].UI.Main.Info.Label.Text = DropdownTable.Description
     end)
     DropdownTable.Asset.MouseEnter:Connect(function()
-        for i,v in pairs(DropdownTable.Tweens) do v:Cancel() end
+        for i,v in pairs(DropdownTable.Tweens) do
+            v:Cancel()
+        end
         DropdownTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {DropdownTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                DropdownTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(65, 86, 97)},
+                0.1
+            }
+        })
         table.insert(DropdownTable.Tweens, Tween)
     end)
     DropdownTable.Asset.MouseLeave:Connect(function()
-        for i,v in pairs(DropdownTable.Tweens) do v:Cancel() end
+        for i,v in pairs(DropdownTable.Tweens) do
+            v:Cancel()
+        end
         DropdownTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {DropdownTable.Asset.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                DropdownTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(44, 58, 66)},
+                0.1
+            }
+        })
         table.insert(DropdownTable.Tweens, Tween)
     end)
     return setmetatable(DropdownTable, Library)
@@ -637,19 +848,44 @@ function Library:TextBox(Name, Callback, Description)
         end
     end)
     TextBoxTable.Asset.Info.MouseButton1Down:Connect(function(X, Y)
-        Assist({["Name"] = "Tween"; ["Arguments"] = {self["Self"].UI.Main.Info; {Position = u2(0.5, 0, 0.91, 0)}; 0.3;}})
+        Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                self["Self"].UI.Main.Info;
+                {Position = u2(0.5, 0, 0.91, 0)};
+                0.3;
+            }
+        })
         self["Self"].UI.Main.Info.Label.Text = TextBoxTable.Description
     end)
     TextBoxTable.Asset.MouseEnter:Connect(function()
-        for i,v in pairs(TextBoxTable.Tweens) do v:Cancel() end
+        for i,v in pairs(TextBoxTable.Tweens) do
+            v:Cancel()
+        end
         TextBoxTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {TextBoxTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                TextBoxTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(65, 86, 97)},
+                0.1
+            }
+        })
         table.insert(TextBoxTable.Tweens, Tween)
     end)
     TextBoxTable.Asset.MouseLeave:Connect(function()
-        for i,v in pairs(TextBoxTable.Tweens) do v:Cancel() end
+        for i,v in pairs(TextBoxTable.Tweens) do
+            v:Cancel()
+        end
         TextBoxTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {TextBoxTable.Asset.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                TextBoxTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(44, 58, 66)},
+                0.1
+            }
+        })
         table.insert(TextBoxTable.Tweens, Tween)
     end)
     return setmetatable(TextBoxTable, Library)
@@ -685,7 +921,17 @@ function Library:Keybind(Name, Starting_Key, Callback, Description, Blacklisted_
     KeybindTable.Update = function(...)
         KeybindTable.Asset.Label.Text = KeybindTable.Name
         KeybindTable.Asset.Frame.Text = KeybindTable.GetKeystringFromEnum(KeybindTable.Key)
-        Assist({["Name"] = "Tween"; ["Arguments"] = {KeybindTable.Asset.Frame; {Position = u2(0.845, -((KeybindTable.Asset.Frame.TextBounds.X-25)+10), 0.5, 0); Size = u2(0, (KeybindTable.Asset.Frame.TextBounds.X + 10), 0, 25)}; 0.1;}})
+        Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                KeybindTable.Asset.Frame;
+                {
+                    Position = u2(0.845, -((KeybindTable.Asset.Frame.TextBounds.X-25)+10), 0.5, 0);
+                    Size = u2(0, (KeybindTable.Asset.Frame.TextBounds.X + 10), 0, 25)
+                };
+                0.1;
+            }
+        })
     end
     KeybindTable.Asset.Visible = true
     KeybindTable.Asset.Parent = self.Section.Holder
@@ -734,19 +980,44 @@ function Library:Keybind(Name, Starting_Key, Callback, Description, Blacklisted_
         end
     end)
     KeybindTable.Asset.Info.MouseButton1Down:Connect(function(X, Y)
-        Assist({["Name"] = "Tween"; ["Arguments"] = {self["Self"].UI.Main.Info; {Position = u2(0.5, 0, 0.91, 0)}; 0.3;}})
+        Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                self["Self"].UI.Main.Info;
+                {Position = u2(0.5, 0, 0.91, 0)};
+                0.3;
+            }
+        })
         self["Self"].UI.Main.Info.Label.Text = KeybindTable.Description
     end)
     KeybindTable.Asset.MouseEnter:Connect(function()
-        for i,v in pairs(KeybindTable.Tweens) do v:Cancel() end
+        for i,v in pairs(KeybindTable.Tweens) do
+            v:Cancel()
+        end
         KeybindTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {KeybindTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                KeybindTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(65, 86, 97)},
+                0.1
+            }
+        })
         table.insert(KeybindTable.Tweens, Tween)
     end)
     KeybindTable.Asset.MouseLeave:Connect(function()
-        for i,v in pairs(KeybindTable.Tweens) do v:Cancel() end
+        for i,v in pairs(KeybindTable.Tweens) do
+            v:Cancel()
+        end
         KeybindTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {KeybindTable.Asset.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                KeybindTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(44, 58, 66)},
+                0.1
+            }
+        })
         table.insert(KeybindTable.Tweens, Tween)
     end)
     return setmetatable(KeybindTable, Library)
@@ -815,19 +1086,44 @@ function Library:Slider(Name, Min, Max, Start, Callback, Precise, Description)
         end
     end)
     SliderTable.Asset.Info.MouseButton1Down:Connect(function(X, Y)
-        Assist({["Name"] = "Tween"; ["Arguments"] = {self["Self"].UI.Main.Info; {Position = u2(0.5, 0, 0.91, 0)}; 0.3;}})
+        Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                self["Self"].UI.Main.Info;
+                {Position = u2(0.5, 0, 0.91, 0)};
+                0.3;
+            }
+        })
         self["Self"].UI.Main.Info.Label.Text = SliderTable.Description
     end)
     SliderTable.Asset.MouseEnter:Connect(function()
-        for i,v in pairs(SliderTable.Tweens) do v:Cancel() end
+        for i,v in pairs(SliderTable.Tweens) do
+            v:Cancel()
+        end
         SliderTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {SliderTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SliderTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(65, 86, 97)},
+                0.1
+            }
+        })
         table.insert(SliderTable.Tweens, Tween)
     end)
     SliderTable.Asset.MouseLeave:Connect(function()
-        for i,v in pairs(SliderTable.Tweens) do v:Cancel() end
+        for i,v in pairs(SliderTable.Tweens) do
+            v:Cancel()
+        end
         SliderTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {SliderTable.Asset.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                SliderTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(44, 58, 66)},
+                0.1
+            }
+        })
         table.insert(SliderTable.Tweens, Tween)
     end)
     return setmetatable(SliderTable, Library)
@@ -836,7 +1132,12 @@ end
 function Library:Label(Text)
     local LabelTable = Assist({
         ["Name"] = "MakeTable";
-        ["Arguments"] = {Text; ["Tweens"] = {}; ["Class"] = "Label"; ["Asset"] = Assist({["Name"] = "GetAsset", ["Arguments"] = {"LabelAsset"}}):Clone();};
+        ["Arguments"] = {
+            Text;
+            ["Tweens"] = {};
+            ["Class"] = "Label";
+            ["Asset"] = Assist({["Name"] = "GetAsset", ["Arguments"] = {"LabelAsset"}}):Clone();
+        };
     })
     LabelTable.Update = function(...)
         LabelTable.Asset.Label.Text = LabelTable.Name
@@ -846,15 +1147,33 @@ function Library:Label(Text)
     LabelTable.Asset.Parent = self.Section.Holder
     LabelTable.Update()
     LabelTable.Asset.MouseEnter:Connect(function()
-        for i,v in pairs(LabelTable.Tweens) do v:Cancel() end
+        for i,v in pairs(LabelTable.Tweens) do
+            v:Cancel()
+        end
         LabelTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {LabelTable.Asset.UIStroke, {Color = Color3.fromRGB(65, 86, 97)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                LabelTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(65, 86, 97)},
+                0.1
+            }
+        })
         table.insert(LabelTable.Tweens, Tween)
     end)
     LabelTable.Asset.MouseLeave:Connect(function()
-        for i,v in pairs(LabelTable.Tweens) do v:Cancel() end
+        for i,v in pairs(LabelTable.Tweens) do
+            v:Cancel()
+        end
         LabelTable.Tweens = {}
-        local Tween = Assist({["Name"] = "Tween"; ["Arguments"] = {LabelTable.Asset.UIStroke, {Color = Color3.fromRGB(44, 58, 66)}, 0.1}})
+        local Tween = Assist({
+            ["Name"] = "Tween";
+            ["Arguments"] = {
+                LabelTable.Asset.UIStroke,
+                {Color = Color3.fromRGB(44, 58, 66)},
+                0.1
+            }
+        })
         table.insert(LabelTable.Tweens, Tween)
     end)
     return setmetatable(LabelTable, Library)
@@ -865,12 +1184,16 @@ function Library:UpdateNotifications()
         if (tick()-v.Data.TOC) >= v.Data.Duration then
             local Notif = v.Data.Notification
             Tween(Notif, {Position = u2(1, Notif.Position.X.Offset, Notif.Position.Y.Scale, Notif.Position.Y.Offset)}, 0.55)
-            delay(0.55, function() Notif:Destroy() end)
+            delay(0.55, function()
+                Notif:Destroy()
+            end)
             table.remove(Library.Notifications, i)
         end
     end
     if #Library.Notifications > 1 then
-        table.sort(Library.Notifications, function(a, b) return a.Data.Queue < b.Data.Queue end)
+        table.sort(Library.Notifications, function(a, b)
+            return a.Data.Queue < b.Data.Queue
+        end)
     end
     for i,v in ipairs(Library.Notifications) do
         local Move_Axis = (0.88 - (0.12 * (i-1)))
@@ -902,7 +1225,7 @@ function Library:Notification(Title, Info, Duration, ButtonOptions)
     }
     Notification.Data.Notification.Name = Notification.Data.Queue
     Notification.Data.Notification.TextLabel.Text = Notification.Info
-    Notification.Data.Notification.Frame.TextLabel.Text = Notification.Title
+    Notification.Data.Notification.Frame.TextLabel.Text = ('<font color="#FFFFFF">Xenon</font>: ' .. Notification.Title)
     Notification.Data.Notification.Parent = Assist({["Name"] = "GetAsset", ["Arguments"] = {"RippleAsset"}}).Parent;
     Notification.Data.Notification.Position = u2(1, Notification.Data.Notification.Position.X.Offset, 0, Notification.Data.Notification.Position.Y.Offset)
     if ButtonOptions then
@@ -911,7 +1234,9 @@ function Library:Notification(Title, Info, Duration, ButtonOptions)
             Notification.Data.Notification.Button1.TextLabel.Text = ButtonOptions[1].Text
             Notification.Data.Notification.Button1.Text = ButtonOptions[1].Text
             Notification.Binds[1] = Notification.Data.Notification.Button1.MouseButton1Click:Connect(function()
-                for i,v in pairs(Notification.Binds) do v:Disconnect() end
+                for i,v in pairs(Notification.Binds) do
+                    v:Disconnect()
+                end
                 ButtonOptions[1].Callback()
                 Library.Notifications[Notification.Data.Queue].Data.TOC = tick() - Duration*2
                 Library:UpdateNotifications()
@@ -922,7 +1247,9 @@ function Library:Notification(Title, Info, Duration, ButtonOptions)
             Notification.Data.Notification.Button2.TextLabel.Text = ButtonOptions[2].Text
             Notification.Data.Notification.Button2.Text = ButtonOptions[2].Text
             Notification.Binds[2] = Notification.Data.Notification.Button2.MouseButton1Click:Connect(function()
-                for i,v in pairs(Notification.Binds) do v:Disconnect() end
+                for i,v in pairs(Notification.Binds) do
+                    v:Disconnect()
+                end
                 ButtonOptions[2].Callback()
                 Library.Notifications[Notification.Data.Queue].Data.TOC = tick() - Duration*2
                 Library:UpdateNotifications()
@@ -930,7 +1257,9 @@ function Library:Notification(Title, Info, Duration, ButtonOptions)
         end
     end
     table.insert(Library.Notifications, Notification)
-    delay(Duration+0.05, function() Library:UpdateNotifications() end)
+    delay(Duration+0.05, function()
+        Library:UpdateNotifications()
+    end)
     Library:UpdateNotifications()
 end
 
@@ -942,7 +1271,9 @@ function Library:UpdateAsset(a_1, ...)
     elseif Class == "Toggle" then
         self.State = a_1;
         self.Update();
-        task.spawn(function() pcall(self.Callback, self.State) end)
+        task.spawn(function()
+            pcall(self.Callback, self.State)
+        end)
     elseif Class == "Label" then
         self.Name = a_1;
     elseif Class == "Slider" then       
