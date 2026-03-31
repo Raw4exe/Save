@@ -37,13 +37,13 @@
 
     function Assist.GetAsset(Name)
         if Name ~= "Toggle" then
-            for i,v in pairs(game.CoreGui:FindFirstChild("XenonV3Lib"):GetDescendants()) do
+            for i,v in pairs(game.CoreGui:FindFirstChild("XZV3Lib"):GetDescendants()) do
                 if v.Name == Name then
                     return v
                 end
             end
         else
-            for i,v in pairs(game.CoreGui:FindFirstChild("XenonV3Lib").Main.ScrollingFrame.Assets:GetChildren()) do
+            for i,v in pairs(game.CoreGui:FindFirstChild("XZV3Lib").Main.ScrollingFrame.Assets:GetChildren()) do
                 if v.Name == Name then
                     return v
                 end
@@ -1417,7 +1417,7 @@
         }
         Notification.Data.Notification.Name = Notification.Data.Queue
         Notification.Data.Notification.TextLabel.Text = Notification.Info
-        Notification.Data.Notification.Frame.TextLabel.Text = ('<font color="#FFFFFF">Xenon</font>: ' .. Notification.Title)
+        Notification.Data.Notification.Frame.TextLabel.Text = ('<font color="#FFFFFF">XZ</font>: ' .. Notification.Title)
         Notification.Data.Notification.Parent = Assist({["Name"] = "GetAsset", ["Arguments"] = {"RippleAsset"}}).Parent;
         Notification.Data.Notification.Position = u2(1, Notification.Data.Notification.Position.X.Offset, 0, Notification.Data.Notification.Position.Y.Offset)
         
