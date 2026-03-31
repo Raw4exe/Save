@@ -84,9 +84,7 @@
                 ["UI"] = game:GetObjects("rbxassetid://12403182534")[1];
                 ["Tabs"] = {};
                 ["ToggleKey"] = Enum.KeyCode.RightAlt;
-                ["BottomMenuToggleKey"] = Enum.KeyCode.RightControl;
                 ["State"] = false;
-                ["BottomState"] = false;
                 ["Debounce"] = false;
             };
         });
@@ -95,10 +93,6 @@
         LibTable.Toggle = function()
             LibTable.State = not LibTable.State
             LibTable.UI.Main.Visible = not LibTable.UI.Main.Visible
-        end
-        LibTable.ToggleBottom = function()
-            LibTable.BottomState = not LibTable.BottomState
-            LibTable.UI.TabHolder.Visible = not LibTable.UI.TabHolder.Visible
         end
         LibTable.Hide_All = function()
             for i,v in pairs(LibTable.UI.Main.ScrollingFrame:GetChildren()) do
@@ -186,10 +180,6 @@
 
             if Key.KeyCode == LibTable.ToggleKey then
                 LibTable.Toggle()
-            end
-
-            if Key.KeyCode == LibTable.BottomMenuToggleKey then
-                LibTable.ToggleBottom()
             end
         end)
         LibTable.UI.Main.Info.Close.MouseButton1Down:Connect(function()
