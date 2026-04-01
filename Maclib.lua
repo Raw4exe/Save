@@ -4470,32 +4470,8 @@ function MacLib:Window(Settings)
 	function WindowFunctions:GetAcrylicBlurState()
 		return acrylicBlur
 	end
-	local function _SetUserInfoState(State)
-		if State then
-			headshot.Image = (isReady and headshotImage) or "rbxassetid://0"
-			username.Text = "@" .. LocalPlayer.Name
-			displayName.Text = LocalPlayer.DisplayName
-		else
-			headshot.Image = assets.userInfoBlurred
-			local nameLength = #LocalPlayer.Name
-			local displayNameLength = #LocalPlayer.DisplayName
-			username.Text = "@" .. string.rep(".", nameLength)
-			displayName.Text = string.rep(".", displayNameLength)
-		end
-	end
-	local showUserInfo
-	if Settings.ShowUserInfo ~= nil then
-		showUserInfo = Settings.ShowUserInfo
-	else
-		showUserInfo = true
-	end
-	_SetUserInfoState(showUserInfo)
-	function WindowFunctions:SetUserInfoState(State)
-		_SetUserInfoState(State)
-	end
-	function WindowFunctions:GetUserInfoState(State)
-		return showUserInfo
-	end
+ 	-- UserInfo block removed
+	
 	function WindowFunctions:SetSize(Size)
 		base.Size = Size
 	end
@@ -4722,7 +4698,7 @@ function MacLib:Demo()
 		Size = UDim2.fromOffset(868, 650),
 		DragStyle = 1,
 		DisabledWindowControls = {},
-		ShowUserInfo = true,
+		
 		Keybind = Enum.KeyCode.RightControl,
 		AcrylicBlur = true,
 	})
@@ -4751,18 +4727,7 @@ function MacLib:Demo()
 				})
 			end,
 		}),
-		ShowUserInfo = Window:GlobalSetting({
-			Name = "Show User Info",
-			Default = Window:GetUserInfoState(),
-			Callback = function(bool)
-				Window:SetUserInfoState(bool)
-				Window:Notify({
-					Title = Window.Settings.Title,
-					Description = (bool and "Showing" or "Redacted") .. " User Info",
-					Lifetime = 5
-				})
-			end,
-		})
+		-- Show User Info global setting removed
 	}
 	local tabGroups = {
 		TabGroup1 = Window:TabGroup()
