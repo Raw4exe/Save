@@ -1,4 +1,4 @@
-﻿local Library = {Notifications={}}
+local Library = {Notifications={}}
 local Assist
 Assist = {
     __index = function(self, index)
