@@ -974,6 +974,34 @@ function Library:create_ui()
             self:update_sections(LeftSection, RightSection)
         end)
 
+        local Modules = {}
+
+        local function BalanceModules()
+            local LeftHeight = 0
+            local RightHeight = 0
+
+            for Index, Module in ipairs(Modules) do
+                local Frame = Module._frame
+                local Height = (Module._state and (93 + Module._size + Module._multiplier) or 93) + 11
+
+                if LeftHeight <= RightHeight then
+                    if Frame.Parent ~= LeftSection then
+                        Frame.Parent = LeftSection
+                    end
+
+                    LeftHeight = LeftHeight + Height
+                else
+                    if Frame.Parent ~= RightSection then
+                        Frame.Parent = RightSection
+                    end
+
+                    RightHeight = RightHeight + Height
+                end
+
+                Frame.LayoutOrder = Index
+            end
+        end
+
         function TabManager:create_module(settings: any)
 
             local LayoutOrderModule = 0;
@@ -984,12 +1012,6 @@ function Library:create_ui()
                 _multiplier = 0
             }
 
-            if settings.section == 'right' then
-                settings.section = RightSection
-            else
-                settings.section = LeftSection
-            end
-
             local Module = Instance.new('Frame')
             Module.ClipsDescendants = true
             Module.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -999,7 +1021,6 @@ function Library:create_ui()
             Module.Size = UDim2.new(0, 241, 0, 93)
             Module.BorderSizePixel = 0
             Module.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
-            Module.Parent = settings.section
 
             local UIListLayout = Instance.new('UIListLayout')
             UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1144,8 +1165,10 @@ function Library:create_ui()
                 Config:save(game.GameId, Library._config)
 
                 settings.callback(self._state)
+
+                BalanceModules()
             end
-            
+
             if Library:flag_type(settings.flag, 'boolean') then
                 ModuleManager._state = true
                 settings.callback(ModuleManager._state)
@@ -2427,6 +2450,12 @@ function Library:create_ui()
             
                 return FeatureContainer
             end                    
+
+            ModuleManager._frame = Module
+
+            Modules[#Modules + 1] = ModuleManager
+
+            BalanceModules()
 
             return ModuleManager
         end
