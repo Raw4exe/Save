@@ -114,7 +114,7 @@ function AcrylicBlur.new(object: GuiObject)
 end
 
 
-function AcrylicBlur:create_folder()
+function AcrylicBlur:CreateFolder()
     local old_folder = workspace.CurrentCamera:FindFirstChild('AcrylicBlur')
 
     if old_folder then
@@ -129,7 +129,7 @@ function AcrylicBlur:create_folder()
 end
 
 
-function AcrylicBlur:create_depth_of_fields()
+function AcrylicBlur:CreateDepthOfFields()
     local depth_of_fields = Lighting:FindFirstChild('AcrylicBlur') or Instance.new('DepthOfFieldEffect')
     depth_of_fields.FarIntensity = 0
     depth_of_fields.FocusDistance = 0.05
@@ -156,7 +156,7 @@ function AcrylicBlur:create_depth_of_fields()
 end
 
 
-function AcrylicBlur:create_frame()
+function AcrylicBlur:CreateFrame()
     local frame = Instance.new('Frame')
     frame.Size = UDim2.new(1, 0, 1, 0)
     frame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -168,7 +168,7 @@ function AcrylicBlur:create_frame()
 end
 
 
-function AcrylicBlur:create_root()
+function AcrylicBlur:CreateRoot()
     local part = Instance.new('Part')
     part.Name = 'Root'
     part.Color = Color3.new(0, 0, 0)
@@ -193,11 +193,11 @@ end
 
 
 function AcrylicBlur:setup()
-    self:create_depth_of_fields()
-    self:create_folder()
-    self:create_root()
+    self:CreateDepthOfFields()
+    self:CreateFolder()
+    self:CreateRoot()
     
-    self:create_frame()
+    self:CreateFrame()
     self:render(0.001)
 
     self:check_quality_level()
@@ -350,7 +350,7 @@ function Library.new()
         _tab = 0,
     }, Library)
     
-    self:create_ui()
+    self:CreateUI()
 
     return self
 end
@@ -406,7 +406,7 @@ function Library.SendNotification(settings)
 
     -- Title Label (with automatic size support)
     local Title = Instance.new("TextLabel")
-    Title.Text = settings.title or "Notification Title"
+    Title.Text = settings.Title or "Notification Title"
     Title.TextColor3 = Color3.fromRGB(210, 210, 210)
     Title.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
     Title.TextSize = 14
@@ -421,7 +421,7 @@ function Library.SendNotification(settings)
 
     -- Body Text (with automatic size support)
     local Body = Instance.new("TextLabel")
-    Body.Text = settings.text or "This is the body of the notification."
+    Body.Text = settings.Text or "This is the body of the notification."
     Body.TextColor3 = Color3.fromRGB(180, 180, 180)
     Body.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
     Body.TextSize = 12
@@ -451,8 +451,8 @@ function Library.SendNotification(settings)
         tweenIn:Play()
 
         -- Wait for the duration before tweening out
-        local duration = settings.duration or 5  -- Default to 5 seconds if not provided
-        wait(duration)
+        local Duration = settings.Duration or 5
+        wait(Duration)
 
         -- Tween Out the Notification (inner frame) to the right side of the screen
         local tweenOut = TweenService:Create(InnerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
@@ -514,7 +514,7 @@ function Library:remove_table_value(__table: any, table_value: string)
 end
 
 
-function Library:create_ui()
+function Library:CreateUI()
     local old_March = CoreGui:FindFirstChild('March')
 
     if old_March then
@@ -837,7 +837,7 @@ function Library:create_ui()
         end
     end
 
-    function self:create_tab(title: string, icon: string)
+    function self:CreateTab(title: string, icon: string)
         local TabManager = {}
 
         local LayoutOrder = 0;
@@ -1002,7 +1002,7 @@ function Library:create_ui()
             end
         end
 
-        function TabManager:create_module(settings: any)
+        function TabManager:CreateModule(settings: any)
 
             local LayoutOrderModule = 0;
 
@@ -1069,11 +1069,11 @@ function Library:create_ui()
             ModuleName.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
             ModuleName.TextColor3 = Color3.fromRGB(152, 181, 255)
             ModuleName.TextTransparency = 0.20000000298023224
-            if not settings.rich then
-                ModuleName.Text = settings.title or "Skibidi"
+            if not settings.Rich then
+                ModuleName.Text = settings.Title or "Skibidi"
             else
                 ModuleName.RichText = true
-                ModuleName.Text = settings.richtext or "<font color='rgb(255,0,0)'>March</font> user"
+                ModuleName.Text = settings.RichText or "<font color='rgb(255,0,0)'>March</font> user"
             end;
             ModuleName.Name = 'ModuleName'
             ModuleName.Size = UDim2.new(0, 205, 0, 13)
@@ -1091,7 +1091,7 @@ function Library:create_ui()
             Description.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
             Description.TextColor3 = Color3.fromRGB(152, 181, 255)
             Description.TextTransparency = 0.699999988079071
-            Description.Text = settings.description
+            Description.Text = settings.Description
             Description.Name = 'Description'
             Description.Size = UDim2.new(0, 205, 0, 13)
             Description.AnchorPoint = Vector2.new(0, 0.5)
@@ -1161,17 +1161,17 @@ function Library:create_ui()
 
                 end
 
-                Library._config._flags[settings.flag] = self._state
+                Library._config._flags[settings.Flag] = self._state
                 Config:save(game.GameId, Library._config)
 
-                settings.callback(self._state)
+                settings.Callback(self._state)
 
                 BalanceModules()
             end
 
-            if Library:flag_type(settings.flag, 'boolean') then
+            if Library:flag_type(settings.Flag, 'boolean') then
                 ModuleManager._state = true
-                settings.callback(ModuleManager._state)
+                settings.Callback(ModuleManager._state)
 
             end
 
@@ -1179,7 +1179,7 @@ function Library:create_ui()
                 ModuleManager:change_state(not ModuleManager._state)
             end)
 
-            function ModuleManager:create_paragraph(settings: any)
+            function ModuleManager:CreateParagraph(settings: any)
                 LayoutOrderModule = LayoutOrderModule + 1;
 
                 local ParagraphManager = {}
@@ -1188,7 +1188,7 @@ function Library:create_ui()
                     self._size = 11
                 end
             
-                self._size += settings.customScale or 70
+                self._size += settings.CustomScale or 70
             
                 if ModuleManager._state then
                     Module.Size = UDim2.fromOffset(241, 93 + self._size)
@@ -1215,7 +1215,7 @@ function Library:create_ui()
                 local Title = Instance.new('TextLabel')
                 Title.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
                 Title.TextColor3 = Color3.fromRGB(210, 210, 210)
-                Title.Text = settings.title or "Title"
+                Title.Text = settings.Title or "Title"
                 Title.Size = UDim2.new(1, -10, 0, 20)
                 Title.Position = UDim2.new(0, 5, 0, 5)
                 Title.BackgroundTransparency = 1
@@ -1230,11 +1230,11 @@ function Library:create_ui()
                 Body.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
                 Body.TextColor3 = Color3.fromRGB(180, 180, 180)
                 
-                if not settings.rich then
-                    Body.Text = settings.text or "Skibidi"
+                if not settings.Rich then
+                    Body.Text = settings.Text or "Skibidi"
                 else
                     Body.RichText = true
-                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>March</font> user"
+                    Body.Text = settings.RichText or "<font color='rgb(255,0,0)'>March</font> user"
                 end
                 
                 Body.Size = UDim2.new(1, -10, 0, 20)
@@ -1263,7 +1263,7 @@ function Library:create_ui()
                 return ParagraphManager
             end
 
-            function ModuleManager:create_text(settings: any)
+            function ModuleManager:CreateText(settings: any)
                 LayoutOrderModule = LayoutOrderModule + 1
             
                 local TextManager = {}
@@ -1272,7 +1272,7 @@ function Library:create_ui()
                     self._size = 11
                 end
             
-                self._size += settings.customScale or 50 -- Adjust the default height for text elements
+                self._size += settings.CustomScale or 50 -- Adjust the default height for text elements
             
                 if ModuleManager._state then
                     Module.Size = UDim2.fromOffset(241, 93 + self._size)
@@ -1300,11 +1300,11 @@ function Library:create_ui()
                 Body.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
                 Body.TextColor3 = Color3.fromRGB(180, 180, 180)
             
-                if not settings.rich then
-                    Body.Text = settings.text or "Skibidi" -- Default text
+                if not settings.Rich then
+                    Body.Text = settings.Text or "Skibidi" -- Default text
                 else
                     Body.RichText = true
-                    Body.Text = settings.richtext or "<font color='rgb(255,0,0)'>March</font> user" -- Default rich text
+                    Body.Text = settings.RichText or "<font color='rgb(255,0,0)'>March</font> user" -- Default rich text
                 end
             
                 Body.Size = UDim2.new(1, -10, 1, 0)
@@ -1331,17 +1331,17 @@ function Library:create_ui()
                 end)
 
                 function TextManager:Set(new_settings)
-                    if not new_settings.rich then
-                        Body.Text = new_settings.text or "Skibidi" -- Default text
+                    if not new_settings.Rich then
+                        Body.Text = new_settings.Text or "Skibidi" -- Default text
                     else
                         Body.RichText = true
-                        Body.Text = new_settings.richtext or "<font color='rgb(255,0,0)'>March</font> user" -- Default rich text
+                        Body.Text = new_settings.RichText or "<font color='rgb(255,0,0)'>March</font> user" -- Default rich text
                     end
                 end;
             
                 return TextManager
             end
-            function ModuleManager:create_textbox(settings: any)
+            function ModuleManager:CreateTextbox(settings: any)
                 LayoutOrderModule = LayoutOrderModule + 1
             
                 local TextboxManager = {
@@ -1364,7 +1364,7 @@ function Library:create_ui()
                 Label.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
                 Label.TextColor3 = Color3.fromRGB(255, 255, 255)
                 Label.TextTransparency = 0.2
-                Label.Text = settings.title or "Enter text"
+                Label.Text = settings.Title or "Enter text"
                 Label.Size = UDim2.new(0, 207, 0, 13)
                 Label.AnchorPoint = Vector2.new(0, 0)
                 Label.Position = UDim2.new(0, 0, 0, 0)
@@ -1379,8 +1379,8 @@ function Library:create_ui()
                 Textbox.FontFace = Font.new('rbxasset://fonts/families/SourceSansPro.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
                 Textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
                 Textbox.BorderColor3 = Color3.fromRGB(0, 0, 0)
-                Textbox.PlaceholderText = settings.placeholder or "Enter text..."
-                Textbox.Text = Library._config._flags[settings.flag] or ""
+                Textbox.PlaceholderText = settings.Placeholder or "Enter text..."
+                Textbox.Text = Library._config._flags[settings.Flag] or ""
                 Textbox.Name = 'Textbox'
                 Textbox.Size = UDim2.new(0, 207, 0, 15)
                 Textbox.BorderSizePixel = 0
@@ -1397,13 +1397,13 @@ function Library:create_ui()
             
                 function TextboxManager:update_text(text: string)
                     self._text = text
-                    Library._config._flags[settings.flag] = self._text
+                    Library._config._flags[settings.Flag] = self._text
                     Config:save(game.GameId, Library._config)
-                    settings.callback(self._text)
+                    settings.Callback(self._text)
                 end
             
-                if Library:flag_type(settings.flag, 'string') then
-                    TextboxManager:update_text(Library._config._flags[settings.flag])
+                if Library:flag_type(settings.Flag, 'string') then
+                    TextboxManager:update_text(Library._config._flags[settings.Flag])
                 end
             
                 Textbox.FocusLost:Connect(function()
@@ -1413,7 +1413,7 @@ function Library:create_ui()
                 return TextboxManager
             end   
 
-            function ModuleManager:create_checkbox(settings: any)
+            function ModuleManager:CreateCheckbox(settings: any)
                 LayoutOrderModule = LayoutOrderModule + 1
                 local CheckboxManager = { _state = false }
             
@@ -1453,7 +1453,7 @@ function Library:create_ui()
                 end
                 TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
                 TitleLabel.TextTransparency = 0.2
-                TitleLabel.Text = settings.title or "Skibidi"
+                TitleLabel.Text = settings.Title or "Skibidi"
                 TitleLabel.Size = UDim2.new(0, 142, 0, 13)
                 TitleLabel.AnchorPoint = Vector2.new(0, 0.5)
                 TitleLabel.Position = UDim2.new(0, 0, 0.5, 0)
@@ -1482,8 +1482,8 @@ function Library:create_ui()
                 KeybindLabel.TextScaled = false
                 KeybindLabel.TextSize = 10
                 KeybindLabel.Font = Enum.Font.SourceSans
-                KeybindLabel.Text = Library._config._keybinds[settings.flag] 
-                    and string.gsub(tostring(Library._config._keybinds[settings.flag]), "Enum.KeyCode.", "") 
+                KeybindLabel.Text = Library._config._keybinds[settings.Flag] 
+                    and string.gsub(tostring(Library._config._keybinds[settings.Flag]), "Enum.KeyCode.", "") 
                     or "..."
                 KeybindLabel.Parent = KeybindBox
             
@@ -1533,13 +1533,13 @@ function Library:create_ui()
                             Size = UDim2.fromOffset(0, 0)
                         }):Play()
                     end
-                    Library._config._flags[settings.flag] = self._state
+                    Library._config._flags[settings.Flag] = self._state
                     Config:save(game.GameId, Library._config)
-                    settings.callback(self._state)
+                    settings.Callback(self._state)
                 end
             
-                if Library:flag_type(settings.flag, "boolean") then
-                    CheckboxManager:change_state(Library._config._flags[settings.flag])
+                if Library:flag_type(settings.Flag, "boolean") then
+                    CheckboxManager:change_state(Library._config._flags[settings.Flag])
                 end
             
                 Checkbox.MouseButton1Click:Connect(function()
@@ -1559,12 +1559,12 @@ function Library:create_ui()
                         if keyInput.KeyCode == Enum.KeyCode.Unknown then return end
             
                         if keyInput.KeyCode == Enum.KeyCode.Backspace then
-                            Library._config._keybinds[settings.flag] = nil
+                            Library._config._keybinds[settings.Flag] = nil
                             Config:save(game.GameId, Library._config)
                             KeybindLabel.Text = "..."
-                            if Connections[settings.flag .. "_keybind"] then
-                                Connections[settings.flag .. "_keybind"]:Disconnect()
-                                Connections[settings.flag .. "_keybind"] = nil
+                            if Connections[settings.Flag .. "_keybind"] then
+                                Connections[settings.Flag .. "_keybind"]:Disconnect()
+                                Connections[settings.Flag .. "_keybind"] = nil
                             end
                             chooseConnection:Disconnect()
                             Library._choosing_keybind = false
@@ -1572,11 +1572,11 @@ function Library:create_ui()
                         end
             
                         chooseConnection:Disconnect()
-                        Library._config._keybinds[settings.flag] = tostring(keyInput.KeyCode)
+                        Library._config._keybinds[settings.Flag] = tostring(keyInput.KeyCode)
                         Config:save(game.GameId, Library._config)
                         Library._choosing_keybind = false
             
-                        local keybind_string = string.gsub(tostring(Library._config._keybinds[settings.flag]), "Enum.KeyCode.", "")
+                        local keybind_string = string.gsub(tostring(Library._config._keybinds[settings.Flag]), "Enum.KeyCode.", "")
                         KeybindLabel.Text = keybind_string
                     end)
                 end)
@@ -1584,18 +1584,18 @@ function Library:create_ui()
                 local keyPressConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
                     if gameProcessed then return end
                     if input.UserInputType == Enum.UserInputType.Keyboard then
-                        local storedKey = Library._config._keybinds[settings.flag]
+                        local storedKey = Library._config._keybinds[settings.Flag]
                         if storedKey and tostring(input.KeyCode) == storedKey then
                             CheckboxManager:change_state(not CheckboxManager._state)
                         end
                     end
                 end)
-                Connections[settings.flag .. "_keypress"] = keyPressConnection
+                Connections[settings.Flag .. "_keypress"] = keyPressConnection
             
                 return CheckboxManager
             end
 
-            function ModuleManager:create_divider(settings: any)
+            function ModuleManager:CreateDivider(settings: any)
                 -- Layout order management
                 LayoutOrderModule = LayoutOrderModule + 1;
             
@@ -1620,12 +1620,12 @@ function Library:create_ui()
                 OuterFrame.Parent = Options
                 OuterFrame.LayoutOrder = LayoutOrderModule
 
-                if settings and settings.showtopic then
+                if settings and settings.ShowTopic then
                     local TextLabel = Instance.new('TextLabel')
                     TextLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
                     TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- 154, 182, 255
                     TextLabel.TextTransparency = 0
-                    TextLabel.Text = settings.title
+                    TextLabel.Text = settings.Title
                     TextLabel.Size = UDim2.new(0, 153, 0, 13)
                     TextLabel.Position = UDim2.new(0.5, 0, 0.501, 0)
                     TextLabel.BackgroundTransparency = 1
@@ -1640,7 +1640,7 @@ function Library:create_ui()
                     TextLabel.Parent = OuterFrame
                 end;
                 
-                if not settings or settings and not settings.disableline then
+                if not settings or settings and not settings.DisableLine then
                     -- Create the inner divider frame that will be placed in the middle of the OuterFrame
                     local Divider = Instance.new('Frame')
                     Divider.Size = UDim2.new(1, 0, 0, dividerHeight)
@@ -1676,7 +1676,7 @@ function Library:create_ui()
                 return true;
             end
             
-            function ModuleManager:create_slider(settings: any)
+            function ModuleManager:CreateSlider(settings: any)
 
                 LayoutOrderModule = LayoutOrderModule + 1
 
@@ -1719,7 +1719,7 @@ function Library:create_ui()
                 end;
                 TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
                 TextLabel.TextTransparency = 0.20000000298023224
-                TextLabel.Text = settings.title
+                TextLabel.Text = settings.Title
                 TextLabel.Size = UDim2.new(0, 153, 0, 13)
                 TextLabel.Position = UDim2.new(0, 0, 0.05000000074505806, 0)
                 TextLabel.BackgroundTransparency = 1
@@ -1800,30 +1800,30 @@ function Library:create_ui()
                 function SliderManager:set_percentage(percentage: number)
                     local rounded_number = 0
 
-                    if settings.round_number then
+                    if settings.RoundNumber then
                         rounded_number = math.floor(percentage)
                     else
                         rounded_number = math.floor(percentage * 10) / 10
                     end
 
-                    percentage = (percentage - settings.minimum_value) / (settings.maximum_value - settings.minimum_value)
+                    percentage = (percentage - settings.MinimumValue) / (settings.MaximumValue - settings.MinimumValue)
                     
                     local slider_size = math.clamp(percentage, 0.02, 1) * Drag.Size.X.Offset
-                    local number_threshold = math.clamp(rounded_number, settings.minimum_value, settings.maximum_value)
+                    local number_threshold = math.clamp(rounded_number, settings.MinimumValue, settings.MaximumValue)
     
-                    Library._config._flags[settings.flag] = number_threshold
+                    Library._config._flags[settings.Flag] = number_threshold
                     Value.Text = number_threshold
     
                     TweenService:Create(Fill, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
                         Size = UDim2.fromOffset(slider_size, Drag.Size.Y.Offset)
                     }):Play()
     
-                    settings.callback(number_threshold)
+                    settings.Callback(number_threshold)
                 end
 
                 function SliderManager:update()
                     local mouse_position = (mouse.X - Drag.AbsolutePosition.X) / Drag.Size.X.Offset
-                    local percentage = settings.minimum_value + (settings.maximum_value - settings.minimum_value) * mouse_position
+                    local percentage = settings.MinimumValue + (settings.MaximumValue - settings.MinimumValue) * mouse_position
 
                     self:set_percentage(percentage)
                 end
@@ -1843,21 +1843,21 @@ function Library:create_ui()
                         Connections:disconnect('slider_drag_'..settings.flag)
                         Connections:disconnect('slider_input_'..settings.flag)
 
-                        if not settings.ignoresaved then
+                        if not settings.IgnoreSaved then
                             Config:save(game.GameId, Library._config);
                         end;
                     end)
                 end
 
 
-                if Library:flag_type(settings.flag, 'number') then
-                    if not settings.ignoresaved then
-                        SliderManager:set_percentage(Library._config._flags[settings.flag]);
+                if Library:flag_type(settings.Flag, 'number') then
+                    if not settings.IgnoreSaved then
+                        SliderManager:set_percentage(Library._config._flags[settings.Flag]);
                     else
-                        SliderManager:set_percentage(settings.value);
+                        SliderManager:set_percentage(settings.Value);
                     end;
                 else
-                    SliderManager:set_percentage(settings.value);
+                    SliderManager:set_percentage(settings.Value);
                 end;
     
                 Slider.MouseButton1Down:Connect(function()
@@ -1867,7 +1867,7 @@ function Library:create_ui()
                 return SliderManager
             end
 
-            function ModuleManager:create_dropdown(settings: any)
+            function ModuleManager:CreateDropdown(settings: any)
 
                 if not settings.Order then
                     LayoutOrderModule = LayoutOrderModule + 1;
@@ -1913,8 +1913,8 @@ function Library:create_ui()
                     Dropdown.LayoutOrder = settings.OrderValue;
                 end;
 
-                if not Library._config._flags[settings.flag] then
-                    Library._config._flags[settings.flag] = {};
+                if not Library._config._flags[settings.Flag] then
+                    Library._config._flags[settings.Flag] = {};
                 end;
                 
                 local TextLabel = Instance.new('TextLabel')
@@ -1927,7 +1927,7 @@ function Library:create_ui()
                 end;
                 TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
                 TextLabel.TextTransparency = 0.20000000298023224
-                TextLabel.Text = settings.title
+                TextLabel.Text = settings.Title
                 TextLabel.Size = UDim2.new(0, 207, 0, 13)
                 TextLabel.BackgroundTransparency = 1
                 TextLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -2030,18 +2030,18 @@ function Library:create_ui()
 
                 function DropdownManager:update(option: string)
                     -- If multi-dropdown is enabled
-                    if settings.multi_dropdown then
+                    if settings.Multi then
                         -- Split the CurrentOption.Text by commas into a table
 
-                        if not Library._config._flags[settings.flag] then
-                            Library._config._flags[settings.flag] = {};
+                        if not Library._config._flags[settings.Flag] then
+                            Library._config._flags[settings.Flag] = {};
                         end;
 
                         local CurrentTargetValue = nil;
                         
-                        if #Library._config._flags[settings.flag] > 0 then
+                        if #Library._config._flags[settings.Flag] > 0 then
 
-                            CurrentTargetValue = convertTableToString(Library._config._flags[settings.flag]);
+                            CurrentTargetValue = convertTableToString(Library._config._flags[settings.Flag]);
 
                         end;
 
@@ -2110,7 +2110,7 @@ function Library:create_ui()
 
                         CurrentOption.Text = table.concat(selected, ", ");
                 
-                        Library._config._flags[settings.flag] = convertStringToTable(CurrentOption.Text);
+                        Library._config._flags[settings.Flag] = convertStringToTable(CurrentOption.Text);
                     else
                         -- For single dropdown, just set the CurrentOption.Text to the selected option
                         CurrentOption.Text = (typeof(option) == "string" and option) or option.Name
@@ -2124,14 +2124,14 @@ function Library:create_ui()
                                 end
                             end
                         end
-                        Library._config._flags[settings.flag] = option
+                        Library._config._flags[settings.Flag] = option
                     end
                 
                     -- Save the configuration state
                     Config:save(game.GameId, Library._config)
                 
                     -- Callback with the updated option(s)
-                    settings.callback(option)
+                    settings.Callback(option)
                 end
                 
                 local CurrentDropSizeState = 0;
@@ -2190,10 +2190,10 @@ function Library:create_ui()
                     end
                 end
 
-                if #settings.options > 0 then
+                if #settings.Options > 0 then
                     DropdownManager._size = 3
 
-                    for index, value in settings.options do
+                    for index, value in settings.Options do
                         local Option = Instance.new('TextButton')
                         Option.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
                         Option.Active = false
@@ -2224,25 +2224,21 @@ function Library:create_ui()
                         UIGradient.Parent = Option
 
                         Option.MouseButton1Click:Connect(function()
-                            if not Library._config._flags[settings.flag] then
-                                Library._config._flags[settings.flag] = {};
+                            if not Library._config._flags[settings.Flag] then
+                                Library._config._flags[settings.Flag] = {};
                             end;
 
-                            if settings.multi_dropdown then
-                                if table.find(Library._config._flags[settings.flag], value) then
-                                    Library:remove_table_value(Library._config._flags[settings.flag], value)
+                            if settings.Multi then
+                                if table.find(Library._config._flags[settings.Flag], value) then
+                                    Library:remove_table_value(Library._config._flags[settings.Flag], value)
                                 else
-                                    table.insert(Library._config._flags[settings.flag], value)
+                                    table.insert(Library._config._flags[settings.Flag], value)
                                 end
                             end
 
                             DropdownManager:update(value)
                         end)
-    
-                        if index > settings.maximum_options then
-                            continue
-                        end
-    
+
                         DropdownManager._size += 16
                         Options.Size = UDim2.fromOffset(207, DropdownManager._size)
                     end
@@ -2252,13 +2248,13 @@ function Library:create_ui()
                     Dropdown:Destroy(true);
                     value.OrderValue = Dropdown.LayoutOrder
                     ModuleManager._multiplier -= CurrentDropSizeState
-                    return ModuleManager:create_dropdown(value)
+                    return ModuleManager:CreateDropdown(value)
                 end;
 
-                if Library:flag_type(settings.flag, 'string') then
-                    DropdownManager:update(Library._config._flags[settings.flag])
+                if Library:flag_type(settings.Flag, 'string') then
+                    DropdownManager:update(Library._config._flags[settings.Flag])
                 else
-                    DropdownManager:update(settings.options[1])
+                    DropdownManager:update(settings.Options[1])
                 end
     
                 Dropdown.MouseButton1Click:Connect(function()
@@ -2268,7 +2264,7 @@ function Library:create_ui()
                 return DropdownManager
             end
 
-            function ModuleManager:create_feature(settings)
+            function ModuleManager:CreateFeature(settings)
 
                 local checked = false;
                 
@@ -2303,7 +2299,7 @@ function Library:create_ui()
                 FeatureButton.Size = UDim2.new(1, -35, 0, 16)
                 FeatureButton.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
                 FeatureButton.TextColor3 = Color3.fromRGB(210, 210, 210)
-                FeatureButton.Text = "    " .. settings.title or "    " .. "Feature"
+                FeatureButton.Text = "    " .. settings.Title or "    " .. "Feature"
                 FeatureButton.AutoButtonColor = false
                 FeatureButton.TextXAlignment = Enum.TextXAlignment.Left
                 FeatureButton.TextTransparency = 0.2
@@ -2349,15 +2345,15 @@ function Library:create_ui()
                     Library._config._flags = {}
                 end
             
-                if not Library._config._flags[settings.flag] then
-                    Library._config._flags[settings.flag] = {
+                if not Library._config._flags[settings.Flag] then
+                    Library._config._flags[settings.Flag] = {
                         checked = false,
-                        BIND = settings.default or "Unknown"
+                        BIND = settings.Default or "Unknown"
                     }
                 end
             
-                checked = Library._config._flags[settings.flag].checked
-                KeybindBox.Text = Library._config._flags[settings.flag].BIND
+                checked = Library._config._flags[settings.Flag].checked
+                KeybindBox.Text = Library._config._flags[settings.Flag].BIND
 
                 if KeybindBox.Text == "Unknown" then
                     KeybindBox.Text = "...";
@@ -2365,7 +2361,7 @@ function Library:create_ui()
 
                 local UseF_Var = nil;
             
-                if not settings.disablecheck then
+                if not settings.DisableCheck then
                     local Checkbox = Instance.new("TextButton")
                     Checkbox.Size = UDim2.new(0, 15, 0, 15)
                     Checkbox.BackgroundColor3 = checked and Color3.fromRGB(152, 181, 255) or Color3.fromRGB(32, 38, 51)
@@ -2385,10 +2381,10 @@ function Library:create_ui()
                     local function toggleState()
                         checked = not checked
                         Checkbox.BackgroundColor3 = checked and Color3.fromRGB(152, 181, 255) or Color3.fromRGB(32, 38, 51)
-                        Library._config._flags[settings.flag].checked = checked
+                        Library._config._flags[settings.Flag].checked = checked
                         Config:save(game.GameId, Library._config)
-                        if settings.callback then
-                            settings.callback(checked)
+                        if settings.Callback then
+                            settings.Callback(checked)
                         end
                     end
 
@@ -2399,7 +2395,7 @@ function Library:create_ui()
                 else
 
                     UseF_Var = function()
-                        settings.button_callback();
+                        settings.ButtonCallback();
                     end;
 
                 end;
@@ -2411,41 +2407,41 @@ function Library:create_ui()
                         if gameProcessed then return end
                         if input.UserInputType == Enum.UserInputType.Keyboard then
                             local newKey = input.KeyCode.Name
-                            Library._config._flags[settings.flag].BIND = newKey
+                            Library._config._flags[settings.Flag].BIND = newKey
                             if newKey ~= "Unknown" then
                                 KeybindBox.Text = newKey;
                             end;
                             Config:save(game.GameId, Library._config) -- Save new keybind
                             inputConnection:Disconnect()
                         elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
-                            Library._config._flags[settings.flag].BIND = "Unknown"
+                            Library._config._flags[settings.Flag].BIND = "Unknown"
                             KeybindBox.Text = "..."
                             Config:save(game.GameId, Library._config)
                             inputConnection:Disconnect()
                         end
                     end)
-                    Connections["keybind_input_" .. settings.flag] = inputConnection
+                    Connections["keybind_input_" .. settings.Flag] = inputConnection
                 end)
             
                 local keyPressConnection
                 keyPressConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
                     if gameProcessed then return end
                     if input.UserInputType == Enum.UserInputType.Keyboard then
-                        if input.KeyCode.Name == Library._config._flags[settings.flag].BIND then
+                        if input.KeyCode.Name == Library._config._flags[settings.Flag].BIND then
                             UseF_Var();
                         end
                     end
                 end)
-                Connections["keybind_press_" .. settings.flag] = keyPressConnection
+                Connections["keybind_press_" .. settings.Flag] = keyPressConnection
             
                 FeatureButton.MouseButton1Click:Connect(function()
-                    if settings.button_callback then
-                        settings.button_callback()
+                    if settings.ButtonCallback then
+                        settings.ButtonCallback()
                     end
                 end)
 
-                if not settings.disablecheck then
-                    settings.callback(checked);
+                if not settings.DisableCheck then
+                    settings.Callback(checked);
                 end;
             
                 return FeatureContainer
